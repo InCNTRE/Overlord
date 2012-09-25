@@ -1,5 +1,10 @@
 # Overlord 2012
 
+from pox.core import core
+import pox.openflow.libopenflow_01 as of
+
+log = core.getLogger()
+
 def learn_device(pkt):
     """ learn_device(pkt)
     Add device information to the database. Everything we can learn,
