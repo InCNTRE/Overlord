@@ -39,8 +39,11 @@ def get_message(msg):
         pass
 
 def launch():
+    # POX Lib
     core.openflow.addListenerByName("ConnectionUp", _handleConnectionUp)
     core.openflow.addListenerByName("PacketIn", _handlePacketIn)
+    # Overlord Lib
+    overlord.path_strategy = overlord.simple_forwarding
 
 def _handleConnectionUp(event):
     msg = of.ofp_flow_mod()
@@ -49,10 +52,23 @@ def _handleConnectionUp(event):
 
 def _handlePacketIn(event):
     packet = event.parsed
-    if (not source_exists(packet.src)):
-        # Install drop action on mac_src
-        msg = of.ofp_flow_mod()
-        msg.match.dl_src = packet.src
-        event.connection.send(msg)
-        # Add device information to db
-        overlord.learn_device(packet)
+    overlord.learn(packet)
+
+    if (packet.dst in overlord.known_hosts):
+        if (overlord.grouped(packet.src, packet.dst)):
+            overlord.connect(overlord.path_strategy, packet.src, packet.dst)
+            return True
+    # Install drop action on packet.src or paket.dst
+    msg = of.ofp_flow_mod()
+    msg.match.dl_src = packet.src
+    msg.match.dl_dst = packet.dst
+    event.connection.send(msg)
+    # ARP for unknown packet dst
+    msg = of.arp()
+    msg.dl_src = packet.src
+    msg.dl_dst = 0
+    msg.nw_src = packet.src_ip
+    msg.nw_dst = packet.dst_ip
+    ofp_msg = of.packet_out(msg)
+    event.connection.send(ofp_msg)
+    return False
