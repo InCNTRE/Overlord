@@ -2,12 +2,13 @@
 
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
-import Overlord.Devices as oDev
+from Overlord.Devices import Devices as oDev
+from Overlord.Hosts import Hosts as oHos
 
 log = core.getLogger()
 
 devices = None
-
+hosts = None
 # def learn_device(pkt):
 #     """ learn_device(pkt)
 #     Add device information to the database. Everything we can learn,
@@ -49,16 +50,25 @@ def launch():
     #overlord.path_strategy = overlord.simple_forwarding
     global devices
     devices = oDev.Devices()
-
+    global hosts
+    hosts = oHos.Hosts()
+    
 def _handleConnectionUp(event):
     # msg = of.ofp_flow_mod()
     # msg.actions.append(of.ofp_action_output())
     # event.connection.send(msg)
-    pkt = event.parsed
-    devices.Learn(pkt)
+    #pkt = event.parsed
+    global log
+    global devices
+    devices.Learn(log, event)
 
 def _handlePacketIn(event):
-    pass
+    global devices
+    devices.Learn(log, event)
+    global hosts
+    hosts.Learn(log, event)
+
+
     # packet = event.parsed
     # overlord.learn(packet)
 
