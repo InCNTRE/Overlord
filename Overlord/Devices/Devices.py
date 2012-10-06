@@ -1,4 +1,10 @@
-# import Overlord.Devices
+# Overlord.Devices
+# Jonathan M. Stout 2012
+#
+# Usage
+# from Overlord.Devices import Devices as oDev
+# devices = oDev.Devices()
+
 import inspect
 
 class Devices(object):
@@ -13,13 +19,9 @@ class Devices(object):
             log.debug('Learnt dpid: ' + str(event.dpid))
             self.memorizeDpid(event.dpid)
             self.memorizePorts(event.dpid, event.ofp.ports)
-        # Else If a Port Status Up
-
-        # Else if a Port Status Down
-
-        # Else don't do anything
-        # Make sure dpids are saved inorder
-        log.debug(self.dpids)
+        elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
+            log.debug('Updating port information.')
+            self.relearnPorts(event)
         
     def memorizeDpid(self, dpid):
         """ Basically insertionSort I won't have more
@@ -31,8 +33,11 @@ class Devices(object):
         self.dpids.insert(i, dpid)
 
     def memorizePorts(self, dpid, ports):
-        """ Publishes all ports to a database. The
-        inverse of this function 'forgetPorts' removes
-        ports from the database. When either is called
-        links involving these ports should re-learnt."""
+        """ Publishes all ports to a database."""
+        pass
+
+    def relearnPorts(self, event):
+        """ Publishes port updates to a database.
+        Links involving these ports should be
+        relearnt."""
         pass
