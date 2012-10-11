@@ -40,11 +40,11 @@ class Hosts(object):
         # Save the dpid, ip, and port to the database here
 
     def learnArp(self, event, pkt):
-        # Find out what group the device is in. If he's even in one.
-        group_no = self.getHostGroup(arp_pkt.hwsrc)
-
         # Learn the host information
         arp_pkt = pkt.next
+
+        # Find out what group the device is in. If he's even in one.
+        group_no = self.getHostGroup(arp_pkt.hwsrc)
         self.memorizeHost(event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
         log.debug(str(event.dpid)+' '+str(event.port)+' '+str(arp_pkt.protosrc)+' '+str(arp_pkt.hwsrc))
 
@@ -52,6 +52,7 @@ class Hosts(object):
             # Drop everything from this source for 3 seconds (group changes may occour)
             msg = of.ofp_flow_mod(hard_timeout=3)
             msg.match.dl_src = arp_pkt.hwsrc
+            msg.match.protodst = arp_pkt.protodst
             event.connection.send(msg)
         elif group_no != None:
             # Forward to group members that are known
@@ -62,4 +63,5 @@ class Hosts(object):
             # Drop everything from this source
             msg = of.ofp_flow_mod(hard_timeout=3)
             msg.match.dl_src = arp_pkt.hwsrc
+            msg.match.protodst = arp_pkt.protodst
             event.connection.send(msg)
