@@ -3,12 +3,16 @@
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
 from Overlord.Devices import Devices as oDev
+from Overlord.Links import Links as oLnk
 from Overlord.Hosts import Hosts as oHos
+from Overlord.Forwarding import Forwarding as oFwd
 
 log = core.getLogger()
 
 devices = None
+links = None
 hosts = None
+forwarding = None
 
 def launch():
     # POX Lib
@@ -19,16 +23,20 @@ def launch():
     devices = oDev.Devices()
     global hosts
     hosts = oHos.Hosts()
-    
+    global links
+    links = oLnk.Links()
+    global forwarding
+    forwarding = oFwd.Forwarding()
+
 def _handleConnectionUp(event):
-    global log
-    global devices
     devices.Learn(log, event)
 
 def _handlePacketIn(event):
-    global devices
+    # Track Network Devices
     devices.Learn(log, event)
-    global hosts
+    # Learn Network Device Links
+    links.Learn(log, event)
+    # Track Hosts
     hosts.Learn(log, event)
 
     # packet = event.parsed

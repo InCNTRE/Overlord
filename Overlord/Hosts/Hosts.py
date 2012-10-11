@@ -1,5 +1,6 @@
 # import Overlord.Hosts
 import inspect
+
 class Hosts(object):
     """Learn and track Host Devices"""
     def __init__(self):
@@ -9,46 +10,24 @@ class Hosts(object):
         """Learn port, mac, and ip"""
         pkt = event.parse()
 
-        # ARP Packet
+        # Learn device locations via ARP Packet
         if pkt.type == 2054:
-            # Learn about the new Device
-            arp_pkt = pkt.next
-            self.memorizeHost(event.dpid, arp_pkt.hwsrc, arp_pkt.protosrc, event.port)
-            log.debug(str(event.dpid)+' '+str(arp_pkt.hwsrc)+' '+str(arp_pkt.protosrc)+' '+str(event.port))
-            # What group is he in? Find from database
-            group_no = self.getHostGroup(arp_pkt.hwsrc)
-            if group_no == -2:
-                # New device, add to default -1 drop group in db
-                # Install Drop(hwsrc, hwdst)
-                pass
-            elif group_no == -1:
-                # Already in defautl drop group
-                # Install Drop(hwsrc, hwdst)
-                pass
-            else:
-                if self.knownHost(arp_pkt.hwdst):
-                    if group_no == self.getHostGroup(arp_pkt.hwdst):
-                        # Add forwarding rules
-                        pass
-                    else:
-                        # They're not defined to talk together
-                        # Install Drop(hwsrc, hwdst)
-                        # Install Drop(hwdst, hwsrc)
-                        pass
-                else:
-                    # Not sure where or if they exist
-                    # Arp the whole group_no group
-                    # Install Drop(hwsrc, hwdst)
-                    pass
-                    
+            self.learnArp(event, pkt)
+
     def getHostGroup(self, hwaddr):
-        return 0
+        return None
+
+    def setHostGroup(self, hwaddr, group_no):
+        pass
+
+    def getGroupMembers(self, hwaddr, group_no):
+        return []
 
     def knownHost(self, hwaddr):
         """binary search self.known_hosts"""
         return True
 
-    def memorizeHost(self, dpid, mac, ip, port):
+    def memorizeHost(self, dpid, port, ip, mac):
         """Yeah insertion sort sucks here, but fuck it.
         Save the Host info to databse by mac. Save only
         mac locally.
@@ -59,3 +38,28 @@ class Hosts(object):
         self.known_hosts.insert(i, mac)
         # UPDATE HERE
         # Save the dpid, ip, and port to the database here
+
+    def learnArp(self, event, pkt):
+        # Find out what group the device is in. If he's even in one.
+        group_no = self.getHostGroup(arp_pkt.hwsrc)
+
+        # Learn the host information
+        arp_pkt = pkt.next
+        self.memorizeHost(event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
+        log.debug(str(event.dpid)+' '+str(event.port)+' '+str(arp_pkt.protosrc)+' '+str(arp_pkt.hwsrc))
+
+        if group_no == "-1":
+            # Drop everything from this source for 3 seconds (group changes may occour)
+            msg = of.ofp_flow_mod(hard_timeout=3)
+            msg.match.dl_src = arp_pkt.hwsrc
+            event.connection.send(msg)
+        elif group_no != None:
+            # Forward to group members that are known
+            forwarding.Connect(arp_pkt.hwsrc, member) for member in self.getGroupMembers(arp_pkt.hwsrc, group_no)
+        else:
+            # Update group_no to group -1
+            self.setHostGroup(arp_pkt.hwsrc, "-1")
+            # Drop everything from this source
+            msg = of.ofp_flow_mod(hard_timeout=3)
+            msg.match.dl_src = arp_pkt.hwsrc
+            event.connection.send(msg)
