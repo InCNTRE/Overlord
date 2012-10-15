@@ -5,11 +5,18 @@ class Links(object):
     def __init__(self):
         pass
 
-    def Learn(pkt):
+    def Learn(self, log, event):
         """Called to learn links on every lldp packet in"""
+        pkt = event.parse()
+
+        if pkt.type == 35020:
+            self.learnLldp(event, pkt)
+
+    def learnLldp(self, event, pkt):
+        lldp_pkt = pkt.next
         pass
 
-    def MakeLLDP():
+    def MakeLLDP(self):
         """Creates an LLDP packet to be sent via packet out
         whenever a new Network Device is discovered"""
         pass
