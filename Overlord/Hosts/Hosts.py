@@ -30,15 +30,25 @@ class Hosts(object):
         """binary search self.known_hosts"""
         return True
 
-    def memorizeHost(self, dpid, port, ip, mac):
-        """Yeah insertion sort sucks here, but fuck it.
-        Save the Host info to databse by mac. Save only
-        mac locally.
-        [(000000, {'dpid':x, 'ip':x, 'port':x})]"""
+    def memorizeHost(self, log, dpid, port, ip, mac):
+        """
+        It makes more since to use something like a
+        binary tree here since count(known_hosts)
+        could be quite large.
+        The dpid, port, ip, and mac should be
+        published to db here.
+        Using insertion sort here for simplicity. No
+        need to over optimize atm.
+        [(mac, {'dpid':x, 'ip':x, 'port':x})]"""
         i = 0
         while i < len(self.known_hosts) and mac >= self.known_hosts[i]:
             i += 1
-        self.known_hosts.insert(i, mac)
+        if i == 0:
+            self.known_hosts.insert(i, mac)
+        elif mac != self.known_hosts[i-1]:
+            self.known_hosts.insert(i, mac)
+
+        log.debug(self.known_hosts)
         # UPDATE HERE
         # Save the dpid, ip, and port to the database here
 
@@ -48,7 +58,7 @@ class Hosts(object):
 
         # Find out what group the device is in. If he's even in one.
         group_no = self.getHostGroup(arp_pkt.hwsrc)
-        self.memorizeHost(event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
+        self.memorizeHost(log, event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
         log.debug(str(event.dpid)+' '+str(event.port)+' '+str(arp_pkt.protosrc)+' '+str(arp_pkt.hwsrc))
 
         if group_no == "-1":
