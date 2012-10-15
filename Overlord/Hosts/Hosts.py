@@ -36,7 +36,7 @@ class Hosts(object):
         mac locally.
         [(000000, {'dpid':x, 'ip':x, 'port':x})]"""
         i = 0
-        while i < len(self.known_hosts) and mac > self.known_hosts[i]:
+        while i < len(self.known_hosts) and mac >= self.known_hosts[i]:
             i += 1
         self.known_hosts.insert(i, mac)
         # UPDATE HERE
