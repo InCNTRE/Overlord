@@ -1,4 +1,6 @@
 # import Overlord.Hosts
+from pox.core import core
+import pox.openflow.libopenflow_01 as of
 import inspect
 
 class Hosts(object):
@@ -12,7 +14,8 @@ class Hosts(object):
 
         # Learn device locations via ARP Packet
         if pkt.type == 2054:
-            self.learnArp(event, pkt)
+            log.debug("Learning ARP")
+            self.learnArp(log, event, pkt)
 
     def getHostGroup(self, hwaddr):
         return None
@@ -39,7 +42,7 @@ class Hosts(object):
         # UPDATE HERE
         # Save the dpid, ip, and port to the database here
 
-    def learnArp(self, event, pkt):
+    def learnArp(self, log, event, pkt):
         # Learn the host information
         arp_pkt = pkt.next
 
@@ -56,7 +59,8 @@ class Hosts(object):
             event.connection.send(msg)
         elif group_no != None:
             # Forward to group members that are known
-            forwarding.Connect(arp_pkt.hwsrc, member) for member in self.getGroupMembers(arp_pkt.hwsrc, group_no)
+            for member in self.getGroupMembers(arp_pkt.hwsrc, group_no):
+                forwarding.Connect(arp_pkt.hwsrc, member)
         else:
             # Update group_no to group -1
             self.setHostGroup(arp_pkt.hwsrc, "-1")
