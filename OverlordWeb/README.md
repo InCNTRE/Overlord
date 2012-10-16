@@ -1,8 +1,5 @@
-# Portlan
-An Openflow network application.
-
-## Purpose
-Make the control plane your bitch.
+# OverlordWeb
+A nodejs frontend for Overlord.
 
 ## The Basics
 
