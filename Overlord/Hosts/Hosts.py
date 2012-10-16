@@ -27,8 +27,15 @@ class Hosts(object):
         return []
 
     def knownHost(self, hwaddr):
-        """binary search self.known_hosts"""
-        return True
+        """
+        Binary search (actually not sure about
+        that) on self.known_hosts"""
+        try:
+            ## Get hwaddr that's mapped to ipaddr
+            self.known_hosts.index(hwaddr)
+            return True
+        except ValueError:
+            return False
 
     def memorizeHost(self, log, dpid, port, ip, mac):
         """
@@ -69,6 +76,9 @@ class Hosts(object):
             event.connection.send(msg)
         elif group_no != None:
             # Forward to group members that are known
+            # if protodst is known and group_nos are equal:
+            #     send arp reply
+            #     and build connection
             for member in self.getGroupMembers(arp_pkt.hwsrc, group_no):
                 forwarding.Connect(arp_pkt.hwsrc, member)
         else:
