@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Portlan</title>
+    <script>
+      function loadGroup(str) {
+      var xmlhttp = new XMLHttpRequest()
+      xmlhttp.onreadystatechange=function() {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+      document.getElementById("groupList").innerHTML=xmlhttp.responseText
+      }else {
+      document.getElementById("groupList").innerHTML="FUCK " + xmlhttp.readyState + " " + xmlhttp.status
+      }
+      }
+      xmlhttp.open("GET", "http://127.0.0.1:8888/index?group_no="+str, true)
+      xmlhttp.send()
+      }
+    </script>
+  </head>
+  <body onload="loadGroup('all')">
+    <h1>Portlan</h1>
+    <ul>
+      <li><a href="add_device.html">Add Device</a></li>
+    </ul>
+    <h2>Registered Devices</h2>
+    <form action="f1">
+      Group: <select name="group" onchange="loadGroup(this.value)">
+    	<option value="all">All Devices</option>
+    	<option value="-1">Inactive</option>
+      (:portlan_groups ~ <option value="[:group_no:]">[:group_no:]</option>:)
+      </select>
+    </form></br>
+    <section id="groupList">Group info is shown here.
+    </section>
+  </body>
+</html>
