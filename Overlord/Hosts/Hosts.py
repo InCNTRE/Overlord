@@ -96,6 +96,7 @@ class Hosts(object):
             #     and build connection
             for member in self.getGroupMembers(arp_pkt.hwsrc, group_no):
                 forwarding.Connect(arp_pkt.hwsrc, member)
+                #     send arp reply
         else:
             # Update group_no to group -1
             self.setHostGroup(log, db, arp_pkt.hwsrc, "-1")
