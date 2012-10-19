@@ -56,9 +56,9 @@ class Hosts(object):
             self.known_hosts.insert(i, mac)
         
         # Save the dpid, ip, and port to the database here
-        host = db.hosts.find_one({"mac": mac})
+        host = db.hosts.find_one({"mac": str(mac)})
         if host == None:
-            db.hosts.save({"parent": str(dpid), "port_no": port, "ip": ip, "mac": mac})
+            db.hosts.save({"parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac)})
         else:
             host["parent"] = str(dpid)
             host["port_no"] = str(port)
