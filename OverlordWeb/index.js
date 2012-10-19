@@ -6,8 +6,8 @@ var http = require('http')
 var url = require('url')
 var server = require('./server').pageIndex
 
-var dbUrl = "192.168.1.144/portlan"
-var collections = ["devices"]
+var dbUrl = "127.0.0.1/overlord"
+var collections = ["hosts"]
 var db = require("mongojs").connect(dbUrl, collections)
 
 http.createServer( function (req, res) {

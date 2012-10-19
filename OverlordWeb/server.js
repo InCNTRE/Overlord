@@ -12,7 +12,7 @@ var ObjectId = require('mongojs').ObjectId
 
 var indexHtml = function(req, res, db) {
     console.log('Starting index.html')
-    db.devices.find({}, {"group_no": true}, function(err, groups) {
+    db.hosts.find({}, {"group_no": true}, function(err, groups) {
 	// Populates group select
 	bind.toFile("./index.html", {"portlan_groups": groups}, function callback(data) {
 	    res.writeHead(200, {"Content-Type": "text/html"})
@@ -26,32 +26,36 @@ var index = function(req, res, db) {
     if (query.group_no == "all") {
 	query = {}
     }
-    db.devices.find(query, function(err, devices) {
-	if (err || !devices) {
-	    console.log("No devices found for group_no ", group)
+    db.hosts.find(query, function(err, hosts) {
+	if (err || !hosts) {
+	    console.log("No hosts found for group_no ", group)
 	    res.writeHeader(404)
 	    res.write("Failure")
 	    res.end()
 	} else {
 	    var result = ""
-	    for (var i = 0; i < devices.length; i++) {
-		result += "<p>" + devices[i].active + " | "
-		result += devices[i].name + " | "
-		result += devices[i].make + " | "
-		result += devices[i].model + " | "
-		result += devices[i].firmware + " | "
-		result += devices[i].group_no + " | "
-		result += devices[i].mac + " | "
-		result += devices[i].ip + " | "
-		result += devices[i].port_no + " | "
-		result += '<a href="update_device.html?name=' + devices[i].name + '">edit</a>' + "</p>"
+	    for (var i = 0; i < hosts.length; i++) {
+		result += "<p>" + hosts[i].active + " | "
+        result += hosts[i]._parent + " | "
+		result += hosts[i]._name + " | "
+		result += hosts[i].make + " | "
+		result += hosts[i].model + " | "
+		result += hosts[i].firmware + " | "
+		result += hosts[i].group_no + " | "
+        result += hosts[i].vlan + " | "
+        result += hosts[i].port_no + " | "
+        result += hosts[i].ip + " | "
+		result += hosts[i].mac + " | "
+		result += hosts[i]._type + " | "
+		
+		result += '<a href="update_device.html?name=' + hosts[i]._name + '">edit</a>' + "</p>"
 	    }
 	    
 	    res.writeHead(200, {"Content-Type": "text/html"})
 	    if (result != "") {
 		res.write(result)
 	    } else {
-		res.write("No devices found.")
+		res.write("No hosts found.")
 	    }
 	    res.end()
 	}
@@ -73,7 +77,7 @@ var addDevice = function(req, res, db) {
     // is added.
     query.active = false
 
-    db.devices.save(query)
+    db.hosts.save(query)
     res.writeHead(302, {"Location": "http://127.0.0.1:8888/"})
     res.end()
 }
@@ -81,9 +85,9 @@ var addDevice = function(req, res, db) {
 var updateDeviceHtml = function(req, res, db) {
     query = url.parse(req.url, true).query
 
-    db.devices.findOne(query, function(err, device) {
+    db.hosts.findOne(query, function(err, device) {
 	if (err || !device) {
-	    console.log("No devices found.")
+	    console.log("No hosts found.")
 	    console.log(err)
 	    res.writeHeader(200)
 	    res.write("Failure")
@@ -104,7 +108,7 @@ var updateDevice = function(req, res, db) {
 
     deviceId = {"_id": ObjectId(query._id)}
     delete query._id
-    db.devices.update(deviceId, query, 'safe', function callback(err, count) {
+    db.hosts.update(deviceId, query, 'safe', function callback(err, count) {
 	if (!err) {
 	    res.writeHead(302, {"Location": "http://127.0.0.1:8888/"})
 	    res.end()
