@@ -8,14 +8,14 @@ class Hosts(object):
     def __init__(self):
         self.known_hosts = []
 
-    def Learn(self, log, event):
+    def Learn(self, log, db, event):
         """Learn port, mac, and ip"""
         pkt = event.parse()
 
         # Learn device locations via ARP Packet
         if pkt.type == 2054:
             log.debug("Learning ARP")
-            self.learnArp(log, event, pkt)
+            self.learnArp(log, db, event, pkt)
 
     def getHostGroup(self, hwaddr):
         return None
@@ -37,7 +37,7 @@ class Hosts(object):
         except ValueError:
             return False
 
-    def memorizeHost(self, log, dpid, port, ip, mac):
+    def memorizeHost(self, log, db, dpid, port, ip, mac):
         """
         It makes more since to use something like a
         binary tree here since count(known_hosts)
@@ -50,22 +50,28 @@ class Hosts(object):
         i = 0
         while i < len(self.known_hosts) and mac >= self.known_hosts[i]:
             i += 1
-        if i == 0:
+        # Makes sure macs aren't duplicated, only updated
+        if i == 0 or mac != self.known_hosts[i-1]:
+            log.debug('Memorizing ' + str(self.known_hosts))
             self.known_hosts.insert(i, mac)
-        elif mac != self.known_hosts[i-1]:
-            self.known_hosts.insert(i, mac)
-
-        log.debug(self.known_hosts)
-        # UPDATE HERE
+        
         # Save the dpid, ip, and port to the database here
+        host = db.hosts.find_one({"mac": mac})
+        if host == None:
+            db.hosts.save({"parent": str(dpid), "port_no": port, "ip": ip, "mac": mac})
+        else:
+            host["parent"] = str(dpid)
+            host["port_no"] = str(port)
+            host["ip"] = str(ip)
+            host["mac"] = str(mac)
 
-    def learnArp(self, log, event, pkt):
+    def learnArp(self, log, db, event, pkt):
         # Learn the host information
         arp_pkt = pkt.next
 
         # Find out what group the device is in. If he's even in one.
         group_no = self.getHostGroup(arp_pkt.hwsrc)
-        self.memorizeHost(log, event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
+        self.memorizeHost(log, db, event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
         log.debug(str(event.dpid)+' '+str(event.port)+' '+str(arp_pkt.protosrc)+' '+str(arp_pkt.hwsrc))
 
         if group_no == "-1":

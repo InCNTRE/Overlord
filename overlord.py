@@ -6,8 +6,10 @@ from Overlord.Devices import Devices as oDev
 from Overlord.Links import Links as oLnk
 from Overlord.Hosts import Hosts as oHos
 from Overlord.Forwarding import Forwarding as oFwd
+from pymongo import Connection
 
 log = core.getLogger()
+db = None
 
 devices = None
 links = None
@@ -18,6 +20,7 @@ def launch():
     # POX Lib
     core.openflow.addListenerByName("ConnectionUp", _handleConnectionUp)
     core.openflow.addListenerByName("PacketIn", _handlePacketIn)
+
     # Overlord Lib
     global devices
     devices = oDev.Devices()
@@ -28,6 +31,11 @@ def launch():
     global forwarding
     forwarding = oFwd.Forwarding()
 
+    # Connect to db
+    global db
+    conn = Connection()
+    db = conn['overlord']
+
 def _handleConnectionUp(event):
     devices.Learn(log, event)
 
@@ -37,7 +45,7 @@ def _handlePacketIn(event):
     # Learn Network Device Links
     links.Learn(log, event)
     # Track Hosts
-    hosts.Learn(log, event)
+    hosts.Learn(log, db, event)
 
     # packet = event.parsed
     # overlord.learn(packet)
