@@ -17,11 +17,18 @@ class Hosts(object):
             log.debug("Learning ARP")
             self.learnArp(log, db, event, pkt)
 
-    def getHostGroup(self, hwaddr):
-        return None
+    def getHostGroup(self, log, db, hwaddr):
+        host = db.hosts.find_one({"mac": str(mac)})
+        if host != None:
+            return host["group_no"]
+        else:
+            return None
 
-    def setHostGroup(self, hwaddr, group_no):
-        pass
+    def setHostGroup(self, log, db, mac, group_no):
+        host = db.hosts.find_one({"mac": str(mac)})
+        host["group_no"] = group_no
+        db.hosts.save(host)
+        log.debug('Moved ' + str(hwaddr) + ' into group ' + str(group_no))
 
     def getGroupMembers(self, hwaddr, group_no):
         return []
@@ -59,7 +66,7 @@ class Hosts(object):
         host = db.hosts.find_one({"mac": str(mac)})
         log.debug(host)
         if host == None:
-            db.hosts.save({"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac), "group_no": "-1"})
+            db.hosts.save({"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac)})#, "group_no": "-1"})
         else:
             host["_parent"] = str(dpid)
             host["port_no"] = str(port)
@@ -91,7 +98,7 @@ class Hosts(object):
                 forwarding.Connect(arp_pkt.hwsrc, member)
         else:
             # Update group_no to group -1
-            self.setHostGroup(arp_pkt.hwsrc, "-1")
+            self.setHostGroup(log, db, arp_pkt.hwsrc, "-1")
             # Drop everything from this source
             msg = of.ofp_flow_mod(hard_timeout=3)
             msg.match.dl_src = arp_pkt.hwsrc
