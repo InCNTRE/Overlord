@@ -48,7 +48,7 @@ var index = function(req, res, db) {
 		result += hosts[i].mac + " | "
 		result += hosts[i]._type + " | "
 		
-		result += '<a href="update_device.html?name=' + hosts[i]._name + '">edit</a>' + "</p>"
+		result += '<a href="update_device.html?mac=' + hosts[i].mac + '">edit</a>' + "</p>"
 	    }
 	    
 	    res.writeHead(200, {"Content-Type": "text/html"})
@@ -78,7 +78,7 @@ var addDevice = function(req, res, db) {
     query.active = false
 
     db.hosts.save(query)
-    res.writeHead(302, {"Location": "http://127.0.0.1:8888/"})
+    res.writeHead(302, {"Location": "http://localhost:8888/"})
     res.end()
 }
 
@@ -106,11 +106,11 @@ var updateDeviceHtml = function(req, res, db) {
 var updateDevice = function(req, res, db) {
     query = url.parse(req.url, true).query
 
-    deviceId = {"_id": ObjectId(query._id)}
+    deviceMac = {"mac": query.mac}
     delete query._id
-    db.hosts.update(deviceId, query, 'safe', function callback(err, count) {
+    db.hosts.update(deviceMac, query, 'safe', function callback(err, count) {
 	if (!err) {
-	    res.writeHead(302, {"Location": "http://127.0.0.1:8888/"})
+	    res.writeHead(302, {"Location": "http://localhost:8888/"})
 	    res.end()
 	}
     })

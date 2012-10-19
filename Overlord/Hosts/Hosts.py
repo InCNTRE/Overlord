@@ -57,13 +57,15 @@ class Hosts(object):
         
         # Save the dpid, ip, and port to the database here
         host = db.hosts.find_one({"mac": str(mac)})
+        log.debug(host)
         if host == None:
-            db.hosts.save({"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac)})
+            db.hosts.save({"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac), "group_no": "-1"})
         else:
             host["_parent"] = str(dpid)
             host["port_no"] = str(port)
             host["ip"] = str(ip)
             host["mac"] = str(mac)
+            db.hosts.save(host)
 
     def learnArp(self, log, db, event, pkt):
         # Learn the host information

@@ -12,7 +12,7 @@
     <form action="update_device">
       <table border="0">
 	<tr>
-	  <td>Name:</td><td><input type="text" name="_name" value="(:name:)"/><br/></td>
+	  <td>Name:</td><td><input type="text" name="_name" value="(:_name:)"/><br/></td>
 	</tr>
 	<tr>
 	  <td>Make:</td><td><input type="text" name="make" value="(:make:)"/><br/></td>
@@ -27,12 +27,9 @@
 	  <td>Group:</td><td><input type="text" name="group_no" value="(:group_no:)"/><br/></td>
 	</tr>
 	<tr>
-	  <td>IP:</td><td><input type="text" name="ip" value="(:ip:)"/><br/></td>
+	  <td>IP:</td><td><input type="text" name="ip" value="(:ip:)"/><br/>
+	  <input type="hidden" name="mac" value="(:mac:)"/></td>
 	</tr>
-    <tr>
-      <td>Mac:</td><td><input type="text" name="_type" value="(:_mac:)"/><br/>
-      <input type="hidden" name="_id" value="(:_id:)"/></td>
-    </tr>
 	<tr>
 	  <td><br/><input type="submit" value="Submit"/><br/></td>
 	</tr>

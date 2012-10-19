@@ -6,7 +6,7 @@ var http = require('http')
 var url = require('url')
 var server = require('./server').pageIndex
 
-var dbUrl = "127.0.0.1/overlord"
+var dbUrl = "localhost/overlord"
 var collections = ["hosts"]
 var db = require("mongojs").connect(dbUrl, collections)
 
