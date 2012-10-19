@@ -79,7 +79,7 @@ class Hosts(object):
         arp_pkt = pkt.next
 
         # Find out what group the device is in. If he's even in one.
-        group_no = self.getHostGroup(arp_pkt.hwsrc)
+        group_no = self.getHostGroup(log, db, arp_pkt.hwsrc)
         self.memorizeHost(log, db, event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
         log.debug(str(event.dpid)+' '+str(event.port)+' '+str(arp_pkt.protosrc)+' '+str(arp_pkt.hwsrc))
 
