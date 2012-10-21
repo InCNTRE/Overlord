@@ -28,9 +28,9 @@ class Hosts(object):
         host = db.hosts.find_one({"mac": str(mac)})
         host["group_no"] = group_no
         db.hosts.save(host)
-        log.debug('Moved ' + str(hwaddr) + ' into group ' + str(group_no))
+        log.debug('Moved ' + str(mac) + ' into group ' + str(group_no))
 
-    def getGroupMembers(self, hwaddr, group_no):
+    def getGroupMembers(self, mac, group_no):
         return []
 
     def knownHost(self, hwaddr):

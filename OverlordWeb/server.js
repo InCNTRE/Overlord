@@ -105,10 +105,10 @@ var updateDeviceHtml = function(req, res, db) {
 
 var updateDevice = function(req, res, db) {
     query = url.parse(req.url, true).query
-
     deviceMac = {"mac": query.mac}
-    delete query._id
-    db.hosts.update(deviceMac, query, 'safe', function callback(err, count) {
+
+    // $set: {key: value} updates all fields in dict
+    db.hosts.update(deviceMac, {$set: query}, 'safe', function callback(err) {
 	if (!err) {
 	    res.writeHead(302, {"Location": "http://localhost:8888/"})
 	    res.end()
