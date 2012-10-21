@@ -22,7 +22,7 @@ class Links(object):
         pass
 
     def ResolvePath(self, host1, host2, strategy=None):
-        if host1.dpid == host2.dpid:
+        if host1["_parent"] == host2["_parent"]:
             return []
         else: # strategy == None
             # Find a valid path. Don't worry about anything else.

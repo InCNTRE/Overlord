@@ -8,14 +8,14 @@ class Hosts(object):
     def __init__(self):
         self.known_hosts = []
 
-    def Learn(self, log, db, event):
+    def Learn(self, log, db, forwarding, links, event):
         """Learn port, mac, and ip"""
         pkt = event.parse()
 
         # Learn device locations via ARP Packet
         if pkt.type == 2054:
             log.debug("Learning ARP")
-            self.learnArp(log, db, event, pkt)
+            self.learnArp(log, db, forwarding, links, event, pkt)
 
     def getHostGroup(self, log, db, mac):
         host = db.hosts.find_one({"mac": str(mac)})
@@ -30,8 +30,9 @@ class Hosts(object):
         db.hosts.save(host)
         log.debug('Moved ' + str(mac) + ' into group ' + str(group_no))
 
-    def getGroupMembers(self, mac, group_no):
-        return []
+    def getGroupMembers(self, log, db, mac, group_no):
+        members = db.hosts.find({"mac": {"$ne": str(mac)}, "group_no": group_no})
+        if members: return members; return {}
 
     def knownHost(self, hwaddr):
         """
@@ -74,7 +75,7 @@ class Hosts(object):
             host["mac"] = str(mac)
             db.hosts.save(host)
 
-    def learnArp(self, log, db, event, pkt):
+    def learnArp(self, log, db, forwarding, links, event, pkt):
         # Learn the host information
         arp_pkt = pkt.next
 
@@ -94,8 +95,10 @@ class Hosts(object):
             # if protodst is known and group_nos are equal:
             #     send arp reply
             #     and build connection
-            for member in self.getGroupMembers(arp_pkt.hwsrc, group_no):
-                forwarding.Connect(arp_pkt.hwsrc, member)
+            host1 = db.hosts.find_one({"mac": str(arp_pkt.hwsrc)})
+            for host2 in self.getGroupMembers(log, db, arp_pkt.hwsrc, group_no):
+                log.debug("Found " + str(host2) + str(host1))
+                forwarding.Connect(log, links, event, host1, host2)
                 #     send arp reply
         else:
             # Update group_no to group -1

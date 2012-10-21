@@ -1,33 +1,38 @@
 # import Overlord.Forwarding
+from pox.core import core
+import pox.openflow.libopenflow_01 as of
+from pox.lib.addresses import EthAddr, IPAddr
 
 class Forwarding(object):
     """Create Forwarding rules for Host to Host communication"""
     def __init__(self):
         pass
 
-    def Connect(host1, host2):
+    def Connect(self, log, links, event, host1, host2):
         # Supply third arg to use a better strategy
         path = links.ResolvePath(host1, host2)
         
         # The hosts reside on the same switch
         if path == []:
             # host1 -> host2
-            fmod = of.ofp_flow_mod(idle_timeout=3)
-            fmod.match.dl_src = host1.mac
-            fmod.match.dl_dst = host2.mac
-            fmod.action = of.ofp_action_output(port = host2.port)
+            fmod = of.ofp_flow_mod(hard_timeout=5)
+            fmod.match.dl_src = EthAddr(host1["mac"])
+            #log.debug("instance type: " + str(type(host2["ip"])))
+            fmod.match.protodst = IPAddr(str(host2["ip"]))
+            fmod.actions.append(of.ofp_action_output(port=int(host2["port_no"])))
             event.connection.send(fmod)
             # host2 -> host1
-            fmod.match.dl_src = host2.mac
-            fmod.match.dl_dst = host1.mac
-            fmod.action = of.ofp_action_output(port = host1.port)
+            fmod = of.ofp_flow_mod(hard_timeout=5)
+            fmod.match.dl_src = EthAddr(host2["mac"])
+            fmod.match.protodst = IPAddr(str(host1["ip"]))
+            fmod.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
             event.connection.send(fmod)
 
-    def Disconnect(host1, host2):
+    def Disconnect(self, host1, host2):
         pass
 
-    def Group():
+    def Group(self):
         pass
 
-    def Ungroup():
+    def Ungroup(self):
         pass

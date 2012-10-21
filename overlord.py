@@ -45,7 +45,7 @@ def _handlePacketIn(event):
     # Learn Network Device Links
     links.Learn(log, event)
     # Track Hosts
-    hosts.Learn(log, db, event)
+    hosts.Learn(log, db, forwarding, links, event)
 
     # packet = event.parsed
     # overlord.learn(packet)
