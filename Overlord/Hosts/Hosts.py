@@ -1,7 +1,8 @@
 # import Overlord.Hosts
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
-import inspect
+from pox.lib.addresses import EthAddr, IPAddr
+from pox.lib.packet.arp import arp
 
 class Hosts(object):
     """Learn and track Host Devices"""
@@ -78,11 +79,12 @@ class Hosts(object):
     def learnArp(self, log, db, forwarding, links, event, pkt):
         # Learn the host information
         arp_pkt = pkt.next
-
+        
         # Find out what group the device is in. If he's even in one.
         group_no = self.getHostGroup(log, db, arp_pkt.hwsrc)
+        
         self.memorizeHost(log, db, event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
-        log.debug(str(event.dpid)+' '+str(event.port)+' '+str(arp_pkt.protosrc)+' '+str(arp_pkt.hwsrc))
+        log.debug('Discovered Host: '+str(arp_pkt.protosrc)+' '+str(arp_pkt.hwsrc))
 
         if group_no == "-1":
             # Drop everything from this source for 3 seconds (group changes may occour)
@@ -97,9 +99,21 @@ class Hosts(object):
             #     and build connection
             host1 = db.hosts.find_one({"mac": str(arp_pkt.hwsrc)})
             for host2 in self.getGroupMembers(log, db, arp_pkt.hwsrc, group_no):
-                log.debug("Found " + str(host2) + str(host1))
                 forwarding.Connect(log, links, event, host1, host2)
                 #     send arp reply
+                amsg = arp()
+                amsg.opcode = 2
+                amsg.hwsrc = EthAddr(host2["mac"])
+                amsg.hwdst = EthAddr(host1["mac"])
+                amsg.protosrc = IPAddr(str(host2["ip"]))
+                amsg.prododst = IPAddr(str(host1["ip"]))
+                pkt.next = amsg
+                pkt_out= of.ofp_packet_out()
+                pkt_out.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
+                #pkt.data = amsg.hdr(None)
+                pkt_out.data = pkt
+                #event.connection.send(pkt)
+                event.connection.send(pkt_out)
         else:
             # Update group_no to group -1
             self.setHostGroup(log, db, arp_pkt.hwsrc, "-1")

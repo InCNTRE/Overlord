@@ -15,18 +15,17 @@ class Forwarding(object):
         # The hosts reside on the same switch
         if path == []:
             # host1 -> host2
-            fmod = of.ofp_flow_mod(hard_timeout=5)
+            fmod = of.ofp_flow_mod(idle_timeout=600)
             fmod.match.dl_src = EthAddr(host1["mac"])
             fmod.match.dl_type = 0x0800
-            #log.debug("instance type: " + str(type(host2["ip"])))
-            fmod.match.protodst = IPAddr(str(host2["ip"]))
+            fmod.match.nw_dst = IPAddr(str(host2["ip"]))
             fmod.actions.append(of.ofp_action_output(port=int(host2["port_no"])))
             event.connection.send(fmod)
             # host2 -> host1
-            fmod = of.ofp_flow_mod(hard_timeout=5)
+            fmod = of.ofp_flow_mod(idle_timeout=600)
             fmod.match.dl_src = EthAddr(host2["mac"])
             fmod.match.dl_type = 0x0800
-            fmod.match.protodst = IPAddr(str(host1["ip"]))
+            fmod.match.nw_dst = IPAddr(str(host1["ip"]))
             fmod.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
             event.connection.send(fmod)
 
