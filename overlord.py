@@ -46,25 +46,3 @@ def _handlePacketIn(event):
     links.Learn(log, event)
     # Track Hosts
     hosts.Learn(log, db, forwarding, links, event)
-
-    # packet = event.parsed
-    # overlord.learn(packet)
-
-    # if (packet.dst in overlord.known_hosts):
-    #     if (overlord.grouped(packet.src, packet.dst)):
-    #         overlord.connect(overlord.path_strategy, packet.src, packet.dst)
-    #         return True
-    # # Install drop action on packet.src or paket.dst
-    # msg = of.ofp_flow_mod()
-    # msg.match.dl_src = packet.src
-    # msg.match.dl_dst = packet.dst
-    # event.connection.send(msg)
-    # # ARP for unknown packet dst
-    # msg = of.arp()
-    # msg.dl_src = packet.src
-    # msg.dl_dst = 0
-    # msg.nw_src = packet.src_ip
-    # msg.nw_dst = packet.dst_ip
-    # ofp_msg = of.packet_out(msg)
-    # event.connection.send(ofp_msg)
-    # return False
