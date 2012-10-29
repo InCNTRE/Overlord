@@ -6,11 +6,11 @@ from Overlord.Devices import Devices as oDev
 from Overlord.Links import Links as oLnk
 from Overlord.Hosts import Hosts as oHos
 from Overlord.Forwarding import Forwarding as oFwd
+from Overlord.Lib.Web import OverlordMessage as oMsg
 from pymongo import Connection
 
-from pox.lib.recoco.recoco import *
-from pox.lib.revent.revent import EventMixin, Event
 import time
+from threading import Thread
 
 log = core.getLogger()
 db = None
@@ -20,38 +20,6 @@ links = None
 hosts = None
 forwarding = None
 
-class WebCommand(Event):
-    def __init__(self, command):
-        Event.__init__(self)
-        self.command = command
-        
-    def Command(self):
-        return self.command
-
-class OverlordMessage(EventMixin):
-    _eventMixin_events = set([WebCommand])
-    
-    def __init__(self):
-        EventMixin.__init__(self)
-
-    def run(self, db):
-        latest = db.messages.find({}, await_data=True, tailable=True).sort("$natural", 1).limit(1)
-        
-        try:
-            last = None
-            while True:
-                try:
-                    cmd = latest.next()
-                    last = cmd["_id"]
-                    # Raise Event
-                    self.raiseEventNoErrors(WebCommand(cmd))
-                except StopIteration:
-                    time.sleep(3)
-                finally:
-                    latest = db.messages.find({"_id": {"$gt": last}}).limit(1)
-        except KeyboardInterrupt:
-            print "ctrl-c was pressed"
-
 ######################################################
 
 def launch():
@@ -60,24 +28,21 @@ def launch():
     core.openflow.addListenerByName("PacketIn", _handlePacketIn)
     
     # Overlord Lib
-    global devices
     devices = oDev.Devices()
-    global hosts
     hosts = oHos.Hosts()
-    global links
     links = oLnk.Links()
-    global forwarding
     forwarding = oFwd.Forwarding()
 
     # Connect to db
-    global db
     conn = Connection()
     db = conn['overlord']
     
     # Overlord Events
-    oEvents = OverlordMessage()
+    oEvents = oMsg.OverlordMessage()
     oEvents.addListenerByName("WebCommand", _handleWebCommand)
-    core.callLater(oEvents.run, db)
+    t = Thread(target=oEvents.run, args=(db,))
+    t.setDaemon(True)
+    t.start()
 
 def _handleWebCommand(event):
     cmd = event.Command()
