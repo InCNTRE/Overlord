@@ -23,8 +23,16 @@ forwarding = None
 ######################################################
 
 def launch():
+    # Define modules as global for assignment
+    global db
+    global devices
+    global link
+    global hosts
+    global forwarding
+
     # POX Lib
     core.openflow.addListenerByName("ConnectionUp", _handleConnectionUp)
+    core.openflow.addListenerByName("ConnectionDown", _handleConnectionDown)
     core.openflow.addListenerByName("PacketIn", _handlePacketIn)
     
     # Overlord Lib
@@ -46,25 +54,32 @@ def launch():
 
 def _handleWebCommand(event):
     cmd = event.Command()
-
-    if u"message" in cmd.keys():
+    
+    try:
         if cmd[u"message"] == u"group":
             log.debug("Got a Group Command")
             mac = cmd["mac"]
             group_no = cmd["group_no"]
+            
+            try:
+                host = hosts.GetInfo(log, db, mac)
+                forwarding.Disconnect(log, devices, host)
+                #forwarding.Group(log, host, group_no)
+            except LookupError:
+                log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
-            host = hosts.GetInfo(log, db, mac)
-            forwarding.Dis(log, host)
-            #forwarding.Group(log, host, group_no)
         elif cmd[u"message"] == u"mirror":
             log.debug("Got a Mirror Command")
         else:
             log.debug("Got an Unknown Command")
-    else:
+    except KeyError:
         log.error("Recived invalid message")
 
 def _handleConnectionUp(event):
     devices.Learn(log, event)
+
+def _handleConnectionDown(event):
+    devices.Forget(log, event)
 
 def _handlePacketIn(event):
     # Track Network Devices

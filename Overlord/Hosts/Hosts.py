@@ -20,6 +20,8 @@ class Hosts(object):
 
     def GetInfo(self, log, db, mac):
         host = db.hosts.find_one({"mac": str(mac)})
+        if host == None:
+            raise LookupError("Host does not exist")
         return host
 
     def getHostGroup(self, log, db, mac):

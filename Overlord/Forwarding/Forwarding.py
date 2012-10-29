@@ -51,18 +51,14 @@ class Forwarding(object):
 
         log.info("Adding flows to connect devices: " + str(host1["_name"]) + " and " + str(host2["_name"]))
 
-    def Dis(self, log, host):
-        #log.debug(str(core.of_01.sockets))
-        pass
+    def Disconnect(self, log, devices, host):
+        conn = devices.Connection(host["_parent"])
 
-    def Disconnect(self, log, event, host):
-        log.debug(str(core.of_01.sockets))
-        '''
         # Remove the from host rules
         fmod = of.ofp_flow_mod()
         fmod.match.dl_src = EthAddr(host["mac"])
         fmod.command = of.OFPFC_DELETE
-        event.connection.send(fmod)
+        conn.send(fmod)
 
         # Remove the to host rules
         fmod = of.ofp_flow_mod()
@@ -70,26 +66,23 @@ class Forwarding(object):
         fmod.match.nw_dst = IPAddr(str(host["ip"]))
         #fmod.match.dl_dst = EthAddr(host["mac"])
         fmod.command = of.OFPFC_DELETE
-        event.connection.send(fmod)
+        conn.send(fmod)
 
         fmod = of.ofp_flow_mod()
         fmod.match.dl_type = 0x0806
         #fmod.match.nw_dst = IPAddr(str(host["ip"]))
         fmod.match.dl_dst = EthAddr(host["mac"])
         fmod.command = of.OFPFC_DELETE
-        event.connection.send(fmod)
+        conn.send(fmod)
         
         fmod = of.ofp_flow_mod()
         fmod.match.dl_type = 0x0806
         #fmod.match.nw_dst = IPAddr(str(host["ip"]))
         fmod.match.dl_dst = EthAddr(host["mac"])
         fmod.command = of.OFPFC_DELETE
-        event.connection.send(fmod)
-
-        
+        conn.send(fmod)
 
         log.info("Removing flows to disconnect device: " + str(host["_name"]))
-        '''
 
     def Group(self):
         pass

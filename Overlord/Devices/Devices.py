@@ -4,9 +4,7 @@
 # Usage
 # from Overlord.Devices import Devices as oDev
 # devices = oDev.Devices()
-
 import inspect
-
 class Devices(object):
     """Learn and track Network Devices"""
     def __init__(self):
@@ -15,7 +13,7 @@ class Devices(object):
 
     def Learn(self, log, event):
         """Learn dpid and ports"""
-        log.debug(event)
+        self.switches[str(event.dpid)] = event.connection
         # If a Features reply
         if str(type(event)) == "<class 'pox.openflow.ConnectionUp'>":
             log.debug('Learnt dpid: ' + str(event.dpid))
@@ -24,7 +22,18 @@ class Devices(object):
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
             self.relearnPorts(event)
+
+    def Forget(self, log, event):
+        del(self.switches[str(event.dpid)])
+        log.info("Lost connection to switch: " + str(event.dpid))
         
+    def Connection(self, dpid):
+        if self.switches != None:
+            try:
+                return self.switches[str(dpid)]
+            except KeyError:
+                log.error("Could not find a Connection for desired Device.")
+
     def memorizeDpid(self, dpid):
         """ Basically insertionSort I won't have more
         than 20 switches at a time connected anyway.
