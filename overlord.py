@@ -19,7 +19,7 @@ devices = None
 links = None
 hosts = None
 forwarding = None
-        
+
 class WebCommand(Event):
     def __init__(self, command):
         Event.__init__(self)
@@ -43,11 +43,9 @@ class OverlordMessage(EventMixin):
                 try:
                     cmd = latest.next()
                     last = cmd["_id"]
-                    print cmd
                     # Raise Event
                     self.raiseEventNoErrors(WebCommand(cmd))
                 except StopIteration:
-                    print "stopped"
                     time.sleep(3)
                 finally:
                     latest = db.messages.find({"_id": {"$gt": last}}).limit(1)
@@ -82,7 +80,23 @@ def launch():
     core.callLater(oEvents.run, db)
 
 def _handleWebCommand(event):
-    log.debug(str(event.Command()))
+    cmd = event.Command()
+
+    if u"message" in cmd.keys():
+        if cmd[u"message"] == u"group":
+            log.debug("Got a Group Command")
+            mac = cmd["mac"]
+            group_no = cmd["group_no"]
+
+            host = hosts.GetInfo(log, db, mac)
+            forwarding.Dis(log, host)
+            #forwarding.Group(log, host, group_no)
+        elif cmd[u"message"] == u"mirror":
+            log.debug("Got a Mirror Command")
+        else:
+            log.debug("Got an Unknown Command")
+    else:
+        log.error("Recived invalid message")
 
 def _handleConnectionUp(event):
     devices.Learn(log, event)

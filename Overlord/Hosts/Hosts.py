@@ -18,6 +18,10 @@ class Hosts(object):
             log.debug("Learning ARP")
             self.learnArp(log, db, forwarding, links, event, pkt)
 
+    def GetInfo(self, log, db, mac):
+        host = db.hosts.find_one({"mac": str(mac)})
+        return host
+
     def getHostGroup(self, log, db, mac):
         host = db.hosts.find_one({"mac": str(mac)})
         if host != None:

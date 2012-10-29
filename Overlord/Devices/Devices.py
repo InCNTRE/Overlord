@@ -10,10 +10,12 @@ import inspect
 class Devices(object):
     """Learn and track Network Devices"""
     def __init__(self):
+        self.switches = {}
         self.dpids = []
 
     def Learn(self, log, event):
         """Learn dpid and ports"""
+        log.debug(event)
         # If a Features reply
         if str(type(event)) == "<class 'pox.openflow.ConnectionUp'>":
             log.debug('Learnt dpid: ' + str(event.dpid))

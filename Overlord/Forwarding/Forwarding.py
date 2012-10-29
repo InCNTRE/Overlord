@@ -51,7 +51,13 @@ class Forwarding(object):
 
         log.info("Adding flows to connect devices: " + str(host1["_name"]) + " and " + str(host2["_name"]))
 
+    def Dis(self, log, host):
+        #log.debug(str(core.of_01.sockets))
+        pass
+
     def Disconnect(self, log, event, host):
+        log.debug(str(core.of_01.sockets))
+        '''
         # Remove the from host rules
         fmod = of.ofp_flow_mod()
         fmod.match.dl_src = EthAddr(host["mac"])
@@ -83,6 +89,7 @@ class Forwarding(object):
         
 
         log.info("Removing flows to disconnect device: " + str(host["_name"]))
+        '''
 
     def Group(self):
         pass
