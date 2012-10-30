@@ -62,9 +62,13 @@ def _handleWebCommand(event):
             group_no = cmd["group_no"]
             
             try:
+                # Pull the DB info and update. Then push down rules.
                 host = hosts.GetInfo(log, db, mac)
+                host["group_no"] = str(group_no)
+                db.hosts.save(host)
+                # Disconnect host from previous devices. Then regroup.
                 forwarding.Disconnect(log, devices, host)
-                #forwarding.Group(log, host, group_no)
+                #forwarding.Group(log, db, links, host, group_no)
             except LookupError:
                 log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
