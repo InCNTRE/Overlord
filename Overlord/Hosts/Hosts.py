@@ -80,7 +80,7 @@ class Hosts(object):
             self.known_hosts.append( (str(mac), "-1") )
             data = {"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac), "group_no": "-1"}
             db.hosts.save(data)
-            self.known_hosts.append(str(mac), "-a")
+            self.known_hosts.append((str(mac), "-1"))
             return (data, "-1")
         else:
             for h in self.known_hosts:
@@ -104,10 +104,10 @@ class Hosts(object):
         
         # If the group_no in the database doesn't match what we know Disconnect
         #  this host from all others.
-        print(str(host1["group_no"]) + " " + last_group)
-        if str(host1["group_no"]) != str(last_group):
-            forwarding.Disconnect(log, event, host1)
-            self.setHostGroupLocal(log, str(host1["mac"]), str(host1["group_no"]))
+        #print(str(host1["group_no"]) + " " + last_group)
+        #if str(host1["group_no"]) != str(last_group):
+        #    forwarding.Disconnect(log, event, host1)
+        #    self.setHostGroupLocal(log, str(host1["mac"]), str(host1["group_no"]))
 
         if str(host1["group_no"]) == "-1":
             # Drop all IP traffic from this host
@@ -127,7 +127,7 @@ class Hosts(object):
                 # Rebuild the links between the device and group members
                 #for h in self.getGroupMembers(log, db, arp_pkt.hwsrc, group_no):
                 #    log.debug(str(host1) + str(h))
-                forwarding.Connect(log, links, event, host1, host2)
+                #forwarding.Connect(log, links, event, host1, host2)
                 #self.setHostGroupLocal(host1["mac"], host1["group_no"])
                     #     send arp reply
                 amsg = arp()

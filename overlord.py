@@ -26,7 +26,7 @@ def launch():
     # Define modules as global for assignment
     global db
     global devices
-    global link
+    global links
     global hosts
     global forwarding
 
@@ -68,7 +68,7 @@ def _handleWebCommand(event):
                 db.hosts.save(host)
                 # Disconnect host from previous devices. Then regroup.
                 forwarding.Disconnect(log, devices, host)
-                #forwarding.Group(log, db, links, host, group_no)
+                forwarding.Group(log, db, devices, links, host)
             except LookupError:
                 log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
