@@ -13,9 +13,8 @@ class Hosts(object):
         """Learn port, mac, and ip"""
         pkt = event.parse()
 
-        # Learn device locations via ARP Packet
+        # Learn device information via ARP Packet
         if pkt.type == 2054:
-            log.debug("Learning ARP")
             self.learnArp(log, db, forwarding, links, event, pkt)
 
     def GetInfo(self, log, db, mac):
@@ -71,44 +70,37 @@ class Hosts(object):
         Using insertion sort here for simplicity. No
         need to over optimize atm.
         [(mac, {'dpid':x, 'ip':x, 'port':x})]"""
-
         host = db.hosts.find_one({"mac": str(mac)})
 
+        # New host
         if host == None:
             # If the source mac is not known add a local (mac, group) entry,
             #  and push the known information to the database.
-            self.known_hosts.append( (str(mac), "-1") )
-            data = {"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac), "group_no": "-1"}
-            db.hosts.save(data)
-            self.known_hosts.append((str(mac), "-1"))
-            return (data, "-1")
+            self.known_hosts.append( (str(mac), "-1") )    
+            host = {"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac), "group_no": "-1"}
+            db.hosts.save(host)
         else:
-            for h in self.known_hosts:
-                if h[0] == str(mac):
-                    host["_parent"] = str(dpid)
-                    host["port_no"] = str(port)
-                    host["ip"] = str(ip)
-                    host["mac"] = str(mac)
-                    db.hosts.save(host)
-                    return (host, str(h[1]))
+            host["_parent"] = str(dpid)
+            host["port_no"] = str(port)
+            host["ip"] = str(ip)
+            host["mac"] = str(mac)
+            db.hosts.save(host)
+            
+        if host not in self.known_hosts:
+            self.known_hosts.append(host["mac"])
 
-        # The host is known but not recorded locally. Save and Return.
-        self.known_hosts.append((str(host["mac"]), str(host["group_no"])))
-        return (host, str(host["group_no"]))
-
+        return host
 
     def learnArp(self, log, db, forwarding, links, event, pkt):
+        """
+        Learn or Update host information when an ARP packet is recieved
+        for a device. Forward ARP messages to devices only if they are
+        in the same group.
+        """
         # Learn or Update the host information
         arp_pkt = pkt.next
-        host1, last_group = self.memorizeHost(log, db, event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
+        host1 = self.memorizeHost(log, db, event.dpid, event.port, arp_pkt.protosrc, arp_pkt.hwsrc)
         
-        # If the group_no in the database doesn't match what we know Disconnect
-        #  this host from all others.
-        #print(str(host1["group_no"]) + " " + last_group)
-        #if str(host1["group_no"]) != str(last_group):
-        #    forwarding.Disconnect(log, event, host1)
-        #    self.setHostGroupLocal(log, str(host1["mac"]), str(host1["group_no"]))
-
         if str(host1["group_no"]) == "-1":
             # Drop all IP traffic from this host
             msg = of.ofp_flow_mod(idle_timeout=300)
@@ -117,27 +109,25 @@ class Hosts(object):
             event.connection.send(msg)
         else:
             host2 = db.hosts.find_one({"ip": str(arp_pkt.protodst)})
-            if host2 == None: return
+            if host2 == None || str(host1["group_no"]) != str(host2["group_no"]): return
 
-            log.debug(str(host1))
-            log.debug(str(host2))
-
-            # ARPing a device that is known to exist and has the same group permissions
-            if str(host1["group_no"]) == str(host2["group_no"]):
-                # Rebuild the links between the device and group members
-                #for h in self.getGroupMembers(log, db, arp_pkt.hwsrc, group_no):
-                #    log.debug(str(host1) + str(h))
-                #forwarding.Connect(log, links, event, host1, host2)
-                #self.setHostGroupLocal(host1["mac"], host1["group_no"])
-                    #     send arp reply
-                amsg = arp()
-                amsg.opcode = 2
-                amsg.hwsrc = EthAddr(host2["mac"])
-                amsg.hwdst = EthAddr(host1["mac"])
-                amsg.protosrc = IPAddr(str(host2["ip"]))
-                amsg.prododst = IPAddr(str(host1["ip"]))
-                pkt.next = amsg
-                pkt_out= of.ofp_packet_out()
-                pkt_out.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
-                pkt_out.data = pkt
-                event.connection.send(pkt_out)
+            """
+            # The ARP'n device src and dst exist and are in the same group
+            # Send ARP Reply for dst device
+            #
+            # ?FIXME?: Forward arp packet might be better here...
+            If a device's info changes and we don't adjust for the change, things
+            might get out of sync? I need to know more about ARP.
+            """
+            amsg = arp()
+            amsg.opcode = 2
+            amsg.hwsrc = EthAddr(host2["mac"])
+            amsg.hwdst = EthAddr(host1["mac"])
+            amsg.protosrc = IPAddr(str(host2["ip"]))
+            amsg.prododst = IPAddr(str(host1["ip"]))
+            pkt.next = amsg
+            pkt_out= of.ofp_packet_out()
+            pkt_out.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
+            pkt_out.data = pkt
+            event.connection.send(pkt_out)
+            

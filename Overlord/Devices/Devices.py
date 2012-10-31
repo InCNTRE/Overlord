@@ -6,48 +6,45 @@
 # devices = oDev.Devices()
 import pox.openflow.libopenflow_01 as of
 
-import inspect
 class Devices(object):
-    """Learn and track Network Devices"""
+    """
+    Learn and track Network Devices
+    """
     def __init__(self):
         self.switches = {}
-        self.dpids = []
 
     def Learn(self, log, event):
-        """Learn dpid and ports"""
+        """
+        Learn dpid and ports
+        """
         self.switches[str(event.dpid)] = event.connection
-        # If a Features reply
+        log.info("Connected to switch: " + str(event.dpid))
+
+        # If a FeaturesReply Message
         if str(type(event)) == "<class 'pox.openflow.ConnectionUp'>":
-            log.debug('Learnt dpid: ' + str(event.dpid))
             # Install high priority rule to catch all arp
             msg = of.ofp_flow_mod()
             msg.match.dl_type = 0x0806
             msg.priority = 40000
             msg.actions.append(of.ofp_action_output(port=of.OFPP_CONTROLLER))
             event.connection.send(msg)
+        # If a PortStatus Message
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
             self.relearnPorts(event)
 
     def Forget(self, log, event):
-        del(self.switches[str(event.dpid)])
-        log.info("Lost connection to switch: " + str(event.dpid))
+        try:
+            del(self.switches[str(event.dpid)])
+            log.info("Lost connection to switch: " + str(event.dpid))
+        except KeyError:
+            log.error("Tried to delete nonexistent Switch from memory")
         
     def Connection(self, log, dpid):
-        if self.switches != None:
-            try:
-                return self.switches[str(dpid)]
-            except KeyError:
-                log.error("Could not find a Connection for desired Device.")
-
-    def memorizeDpid(self, dpid):
-        """ Basically insertionSort I won't have more
-        than 20 switches at a time connected anyway.
-        this is local only."""
-        i = 0
-        while i < len(self.dpids) and dpid > self.dpids[i]:
-            i += 1
-        self.dpids.insert(i, dpid)
+        try:
+            return self.switches[str(dpid)]
+        except KeyError:
+            log.error("Could not find a Connection for desired Device.")
 
     def memorizePorts(self, dpid, ports):
         """ Publishes all ports to a database."""

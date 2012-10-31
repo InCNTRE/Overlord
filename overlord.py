@@ -1,4 +1,9 @@
-# Overlord 2012
+"""
+Overlord
+
+An Openflow control plane solution.
+1. Group devices via layer2 rules
+"""
 
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
@@ -14,7 +19,6 @@ from threading import Thread
 
 log = core.getLogger()
 db = None
-
 devices = None
 links = None
 hosts = None
@@ -52,30 +56,28 @@ def launch():
     t.setDaemon(True)
     t.start()
 
+# This could probably be cleaned up a bit. Maybe push it down into forwarding.Group.
 def _handleWebCommand(event):
     cmd = event.Command()
-    
     try:
         if cmd[u"message"] == u"group":
-            log.debug("Got a Group Command")
-            mac = cmd["mac"]
-            group_no = cmd["group_no"]
-            
+            log.info("Got a Group Command")            
             try:
-                # Pull the DB info and update. Then push down rules.
-                host = hosts.GetInfo(log, db, mac)
-                host["group_no"] = str(group_no)
+                host = hosts.GetInfo(log, db, cmd[u"mac"])
+                host["group_no"] = str( cmd[u"group_no"] )
                 db.hosts.save(host)
-                # Disconnect host from previous devices. Then regroup.
+
                 forwarding.Disconnect(log, devices, host)
                 forwarding.Group(log, db, devices, links, host)
             except LookupError:
                 log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
         elif cmd[u"message"] == u"mirror":
-            log.debug("Got a Mirror Command")
+            log.info("Got a Mirror Command")
+
         else:
-            log.debug("Got an Unknown Command")
+            log.error("Got an Unknown Command")
+
     except KeyError:
         log.error("Recived invalid message")
 
