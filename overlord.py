@@ -48,7 +48,13 @@ def launch():
     # Connect to db
     conn = Connection()
     db = conn['overlord']
-    
+
+    # Initialize Message Queue
+    if "messages" in db.collection_names():
+        db["messages"].drop()
+        db.create_collection("messages", size=100000, max=100, capped=True)
+        db.messages.insert({"message": "null"})
+        
     # Overlord Events
     oEvents = oMsg.OverlordMessage()
     oEvents.addListenerByName("WebCommand", _handleWebCommand)
@@ -82,14 +88,14 @@ def _handleWebCommand(event):
         log.error("Recived invalid message")
 
 def _handleConnectionUp(event):
-    devices.Learn(log, event)
+    devices.Learn(log, db, event)
 
 def _handleConnectionDown(event):
     devices.Forget(log, event)
 
 def _handlePacketIn(event):
     # Track Network Devices
-    devices.Learn(log, event)
+    devices.Learn(log, db, event)
     # Learn Network Device Links
     links.Learn(log, event)
     # Track Hosts

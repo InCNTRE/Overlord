@@ -109,7 +109,7 @@ class Hosts(object):
             event.connection.send(msg)
         else:
             host2 = db.hosts.find_one({"ip": str(arp_pkt.protodst)})
-            if host2 == None || str(host1["group_no"]) != str(host2["group_no"]): return
+            if host2 == None or str(host1["group_no"]) != str(host2["group_no"]): return
 
             """
             # The ARP'n device src and dst exist and are in the same group
