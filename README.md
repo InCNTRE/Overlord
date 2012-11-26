@@ -35,3 +35,4 @@ node index.js
 1. Match on source mac
 2. Match on destination mac
 3. Match on destination ip
+4. Match on Ethertype
