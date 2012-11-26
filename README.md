@@ -1,9 +1,5 @@
 # Overlord
-
-## OpenFlow Hardware Requirements
-1. Match on source mac
-2. Match on destination mac
-3. Match on destination ip
+Overlord is an Openflow network application built on the POX framework. Overlord was built to manage rapidly changing networks by tracking host IP addresses, source port numbers, and top-of-rack DPIDs.
 
 ## Installation
 
@@ -34,3 +30,8 @@ Start the OverlordWeb web server.
 cd ~/OverlordWeb
 node index.js
 ```
+
+## OpenFlow Hardware Requirements
+1. Match on source mac
+2. Match on destination mac
+3. Match on destination ip
