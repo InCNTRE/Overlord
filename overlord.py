@@ -74,7 +74,8 @@ def _handleWebCommand(event):
                 db.hosts.save(host)
 
                 forwarding.Disconnect(log, devices, host)
-                forwarding.Group(log, db, devices, links, host)
+                if host["group_no"] != "-1":
+                    forwarding.Group(log, db, devices, links, host)
             except LookupError:
                 log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
