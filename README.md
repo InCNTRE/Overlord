@@ -1,5 +1,6 @@
 # Overlord
-Overlord is an Openflow network application built on the POX framework. Overlord was built to manage rapidly changing networks by tracking host IP addresses, source port numbers, and top-of-rack DPIDs.
+Overlord is an automated network device database built to address rapidly changing network configurations and labs with limited network resources. Overlord, built on the POX Openflow Controller platform, manages connections between end hosts by placing them in defined L2 network groups. These groups are defined by matching on source and destination mac in devices under Overlord’s control. Overlord also acts as an automatic network device database. By using each host’s source mac address as an unique identifier, Overlord is able to detect changes in host IP addresses, source port numbers, and top-of-rack DPIDs. Overlord tracks devices by intercepting ARP messages and updating device ARP tables.
+Important: Overlord only uses ARP to update its internal database. Therefore, only IP/TCP connections are supported.
 
 ## Installation
 
