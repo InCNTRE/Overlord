@@ -119,12 +119,14 @@ class Hosts(object):
             If a device's info changes and we don't adjust for the change, things
             might get out of sync? I need to know more about ARP.
             """
+            pkt.src = EthAddr(host2["mac"])
+            pkt.dst = EthAddr(host1["mac"])
             amsg = arp()
             amsg.opcode = 2
             amsg.hwsrc = EthAddr(host2["mac"])
             amsg.hwdst = EthAddr(host1["mac"])
             amsg.protosrc = IPAddr(str(host2["ip"]))
-            amsg.prododst = IPAddr(str(host1["ip"]))
+            amsg.protodst = IPAddr(str(host1["ip"]))
             pkt.next = amsg
             pkt_out= of.ofp_packet_out()
             pkt_out.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
