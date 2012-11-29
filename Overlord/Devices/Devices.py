@@ -39,7 +39,7 @@ class Devices(object):
 
             if fwding != None:
                 hosts = db.hosts.find({'dpid': str(event.dpid)})
-                if hosts is None or devs=None or lnks=None:
+                if hosts is None or devs is None or lnks is None:
                     return
                 for h in hosts:
                     if h['group_no'] != '-1':
