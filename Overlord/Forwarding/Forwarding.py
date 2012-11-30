@@ -15,36 +15,21 @@ class Forwarding(object):
         # The hosts reside on the same switch
         if path == []:
             # host1 -> host2
-            fmod = of.ofp_flow_mod(idle_timeout=600)
+            fmod = of.ofp_flow_mod(hard_timeout=0)
             fmod.match.dl_src = EthAddr(host1["mac"])
-            #fmod.match.dl_type = 0x0800
-            #fmod.match.nw_dst = IPAddr(str(host2["ip"]))
             fmod.match.dl_dst = EthAddr(host2["mac"])
             fmod.actions.append(of.ofp_action_output(port=int(host2["port_no"])))
             # THIS HAS TO CHANGE
             devices.Connection(log, host1["_parent"]).send(fmod)
-            #event.connection.send(fmod)
-            # host2 -> host1
-            fmod = of.ofp_flow_mod(idle_timeout=600)
+
+            fmod = of.ofp_flow_mod(hard_timeout=0)
             fmod.match.dl_src = EthAddr(host2["mac"])
-            #fmod.match.dl_type = 0x0800
-            #fmod.match.nw_dst = IPAddr(str(host1["ip"]))
             fmod.match.dl_dst = EthAddr(host1["mac"])
             fmod.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
             # THIS HAS TO CHANGE
             devices.Connection(log, host1["_parent"]).send(fmod)
-            #event.connection.send(fmod)
 
-            #msg = of.ofp_flow_mod(idle_timeout=5)
-            #msg.match.dl_src = arp_pkt.hwsrc
-            #msg.match.dl_src = EthAddr(host2["mac"])#arp_pkt.hwsrc
-            #msg.match.dl_type = 0x0806
-            #msg.match.protodst = arp_pkt.protodst
-            #msg.match.dl_dst = EthAddr(host1["mac"])#arp_pkt.hwdst
-            #msg.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
-            #event.connection.send(msg)
-
-        log.info("Adding flows to connect devices: " + str(host1["_name"]) + " and " + str(host2["_name"]))
+        log.info("Connected devices: " + str(host1["_name"]) + " and " + str(host2["_name"]))
 
     def Disconnect(self, log, devices, host):
         conn = devices.Connection(log, host["_parent"])

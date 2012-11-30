@@ -29,22 +29,28 @@ class Devices(object):
                 d = {}
             d["dpid"] = str(event.dpid)
             db.devices.save(d)
+
             log.info("Connected to switch: " + str(event.dpid))
-            # Install high priority rule to catch all arp
+            # Delete any existing flows in the switch.
+            msg = of.ofp_flow_mod()
+            msg.command = of.OFPFC_DELETE
+            event.connection.send(msg)
+
+            # Make switch forward all ARP to Overlord.
             msg = of.ofp_flow_mod()
             msg.match.dl_type = 0x0806
             msg.priority = 40000
             msg.actions.append(of.ofp_action_output(port=of.OFPP_CONTROLLER))
             event.connection.send(msg)
 
-            if fwding != None:
-                hosts = db.hosts.find({'dpid': str(event.dpid)})
-                if hosts is None or lnks is None:
-                    return
+            if fwding != None and lnks != None:
+                log.info("Building host links in line with database.")
+                hosts = db.hosts.find({'_parent': str(event.dpid)})
                 for h in hosts:
+                    log.info(h)
                     if h['group_no'] != '-1':
                         fwding.Group(log, db, self, lnks, h)
-
+                        
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
             self.relearnPorts(event)
