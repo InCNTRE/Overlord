@@ -13,7 +13,7 @@ class Devices(object):
     def __init__(self):
         self.switches = {}
 
-    def Learn(self, log, db, event, fwding=None, devs=None, lnks=None):
+    def Learn(self, log, db, event, fwding=None, lnks=None):
         """
         Learn dpid and ports
         """
@@ -39,11 +39,11 @@ class Devices(object):
 
             if fwding != None:
                 hosts = db.hosts.find({'dpid': str(event.dpid)})
-                if hosts is None or devs is None or lnks is None:
+                if hosts is None or fwding is None or lnks is None:
                     return
                 for h in hosts:
                     if h['group_no'] != '-1':
-                        fwding.Group(log, db, devs, lnks, h)
+                        fwding.Group(log, db, self, lnks, h)
 
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
