@@ -26,11 +26,10 @@ def dijkstra(graph, start):
 
     while len(q) != 0:
         # u is a dpid
-        u = min(q.values(), key=dict_sort)[0]
+        u = min(q.items(), key=dict_sort)[0]
 
         # v is u's neighbor as a Link object
-        for v in graph[u]:
-            link_stats = v.get_stats()
+        for v in graph[u].get_links():
             w = v.get_weight()
 
             new_len = dist[u] + w

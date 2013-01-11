@@ -6,9 +6,17 @@ class Switch(object):
         self.dpid = dpid
         self.links = {}
 
+    # DPID
+    def get_dpid(self):
+        return self.dpid
+
+    # Links
     def add_link(self, dpid, in_port):
         l = Link(in_port)
         self.links[dpid] = l
+
+    def get_links(self):
+        return self.links
 
     def remove_link(self, dpid):
         try:
@@ -25,24 +33,28 @@ class Link(object):
         self.port = in_port
         self.stats = {"default" : 1}
 
-        # Weight function
         def f (stats): return stats["default"]
-        self.set_weight_function(f)
+        self.weight_func = f
 
-    def get_weight(self):
-        return self.calc_weight(self.stats)
+    # DPID
+    def get_dpid(self):
+        return self.dpid
 
-    def set_weight_function(self, f):
-        self.calc_weight = f
+    # Port
+    def get_port(self):
+        return self.in_port
+
+    # Stats
+    def get_stats(self):
+        return self.stats
 
     def update_stats(self, stats):
         self.stats = stats
 
-    def get_dpid(self):
-        return self.dpid
+    # Weight
+    def get_weight(self):
+        return self.weight_func(self.stats)
 
-    def get__port(self):
-        return self.in_port
+    def set_weight_function(self, f):
+        self.weight_func = f
 
-    def get_stats(self):
-        return self.stats

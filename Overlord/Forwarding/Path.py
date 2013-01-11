@@ -11,7 +11,7 @@ class Path(Eventful):
         self.start = start
         self.end = end
 
-        # Register event so module above knows to attempt, or not,
+        # Register event so module above knows to attempt, or not
         # recalculation of path.
         self.add_event("path_down")
         self.add_event("path_node_up")
