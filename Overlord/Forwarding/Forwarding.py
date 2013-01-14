@@ -51,31 +51,44 @@ class Forwarding(object):
             if not dpid in flows_to_install:
                 flows_to_install[dpid] = []
 
-            if n.get_ingress() != None:
+            if n.get_ingress() == None and n.get_egress != None:
                 fmod = of.ofp_flow_mod(hard_timeout=0)
                 fmod.match.dl_dst = EthAddr(host2["mac"])
                 fmod.match.dl_src = EthAddr(host1["mac"])
                 fmod.actions.append(of.ofp_action_output(port=int(n.get_egress())))
                 flows_to_install[dpid].append(fmod)
-            else:
+
                 fmod = of.ofp_flow_mod(hard_timeout=0)
                 fmod.match.dl_dst = EthAddr(host1["mac"])
                 fmod.match.dl_src = EthAddr(host2["mac"])
                 fmod.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
                 flows_to_install[dpid].append(fmod)
-
-            if n.get_egress() != None:
-                fmod = of.ofp_flow_mod(hard_timeout=0)
-                fmod.match.dl_dst = EthAddr(host1["mac"])
-                fmod.match.dl_src = EthAddr(host2["mac"])
-                fmod.actions.append(of.ofp_action_output(port=int(n.ingress())))
-                flows_to_install[dpid].append(fmod)
-            else:
+            elif n.get_ingress() != None and n.get_egress == None:
                 fmod = of.ofp_flow_mod(hard_timeout=0)
                 fmod.match.dl_dst = EthAddr(host2["mac"])
                 fmod.match.dl_src = EthAddr(host1["mac"])
                 fmod.actions.append(of.ofp_action_output(port=int(host2["port_no"])))
                 flows_to_install[dpid].append(fmod)
+
+                fmod = of.ofp_flow_mod(hard_timeout=0)
+                fmod.match.dl_dst = EthAddr(host1["mac"])
+                fmod.match.dl_src = EthAddr(host2["mac"])
+                fmod.actions.append(of.ofp_action_output(port=int(n.get_ingress())))
+                flows_to_install[dpid].append(fmod)
+            elif n.get_ingress() != None and n.get_egress != None:
+                fmod = of.ofp_flow_mod(hard_timeout=0)
+                fmod.match.dl_dst = EthAddr(host2["mac"])
+                fmod.match.dl_src = EthAddr(host1["mac"])
+                fmod.actions.append(of.ofp_action_output(port=int(n.get_egress())))
+                flows_to_install[dpid].append(fmod)
+
+                fmod = of.ofp_flow_mod(hard_timeout=0)
+                fmod.match.dl_dst = EthAddr(host1["mac"])
+                fmod.match.dl_src = EthAddr(host2["mac"])
+                fmod.actions.append(of.ofp_action_output(port=int(n.get_ingress())))
+                flows_to_install[dpid].append(fmod)
+            else:
+                print("ERROR::This should not have happened.")
 
         #devices.Connection(log, host1["_parent"]).send(fmod)
         return flows_to_install
