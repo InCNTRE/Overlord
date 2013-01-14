@@ -33,16 +33,16 @@ class Forwarding(object):
 
     def Connect(self, host1, host2, path=None):
         """
+        Build a connection based on either @path or a new path
+        found between host1's parent and host2's parent.
         @param host1
         @param host2
         @param path
         """
-        # Supply third arg to use a better strategy
         if path == None:
             path = self.graph.get_path(host1["_parent"], host2["_parent"])
         self.connections[path.get_id()] = Connection(path.get_id(), host1, host2)
 
-        # The hosts reside on the same switch
         flows_to_install = {}
         for i in range( len(path) ):
             n = path.at(i)
