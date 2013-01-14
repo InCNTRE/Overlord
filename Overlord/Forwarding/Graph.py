@@ -1,5 +1,5 @@
 # @org InCNTRE 2013
-# @author Jonathan Stout    
+# @author Jonathan Stout
 
 from Path import *
 from PathSolution import dijkstra
@@ -13,9 +13,9 @@ class Graph(Eventful):
 
         self.path_id = self.id_generator()
 
-        self.add_event("path_down", self.handle_path_down)
-        self.add_event("path_mod", self.handle_path_mod)
-        self.add_event("path_up", self.handle_path_up)
+        self.add_event("path_down")
+        self.add_event("path_mod")
+        self.add_event("path_up")
 
     def add_link(self, rcvr_dpid, sndr_dpid, in_port):
         """
@@ -28,10 +28,16 @@ class Graph(Eventful):
 
     def add_switch(self, dpid):
         """
-        Adds a switch object to the network graph.
+        Adds a switch object to the network graph. If the switch
+        had already existed, turn up all path_nodes associated
+        with dpid.
         @param dpid Dpid of new switch connection
         """
-        self.switches[dpid] = Switch(dpid)
+        if dpid in self.switches:
+            for p in self.path_nodes:
+                self.path_nodes[dpid].node_up()
+        else:
+            self.switches[dpid] = Switch(dpid)
 
     def down_switch(self, dpid):
         """
@@ -39,7 +45,8 @@ class Graph(Eventful):
         @param dpid Dpid of device connection that went down
         """
         try:
-            self.path_nodes[dpid].node_down()
+            for n in self.path_nodes[dpid]:
+                n.node_down()
         except KeyError:
             print("No path involoving {} has been provisioned" \
                       .format( str(dpid) ))
@@ -54,22 +61,99 @@ class Graph(Eventful):
         """
         #TODO:: Update this code to build path
         if path_id == None:
-            path_id = self.path_id
+            path_id = self.path_id.next()
+
+        pre = dijkstra(self.switches, dpid_a)
+        path_of_nodes = self.new_path_nodes(dpid_a, dpid_b, pred)
+
+        # Store all nodes by dpid. When a dpid goes down all
+        # nodes will be notified of the event.
+        path = Path(dpid_a, dpid_b, path_of_nodes)
+        for i in range( len(path) ):
+            p = path.at(i)
+            self.path_nodes[p.get_dpid()].append(p)
+
+        # Store all paths by path_id. When a node in a path
+        # goes down the path will be notified and send an
+        # event to self.handle_path_down or ...path_up.
+        path.set_id(path_id)
+        path.add_listener("path_down", self.handle_path_down)
+        path.add_listener("path_up", self.handle_path_up)
+        self.paths[path_id] = path
+        return Path
+
+    def new_path_nodes(self, dpid_a, dpid_b, pred):
+        """
+        Recursivly builds an array of PathNodes by storing the
+        ingress port, after recieving the predicessor PathNode
+        storing the egress port, appending a PathNode to the
+        result, and returning.
+        @param dpid_a Dpid of first node in the path
+        @param dpid_b Dpid of last node in the path
+        @param pred A map from a dpid to the predicessor of that dpid
+        """
+        if pred[dpid_b] == -1:
+            return []
+
+        if dpid_a == dpid_b:
+            return [PathNode(dpid_a, None, None)]
+        else:
+            b_pre == pred[dpid_b]
+            i = self.switches[dpid_b].get_link(b_pre).get_port()
+
+            nodes = self.new_path_nodes(dpid_a, b_pre, pred)
+            l_node = nodes[len(nodes)-1]
+            
+            e = self.switches[l_node.get_dpid()].get_link(dpid_b).get_port()
+            l_node.set_egress(e)
+            return nodes.append( PathNode(dpid_b, i, None) )
+
+    def handle_path_down(self, e):
+        """
+        Called when a Path has a node that has gone down. In
+        this case we attempt to create a new Path to replace
+        the old. If we can we trigger a 'path_mod' event, 
+        passing the old and new paths up the listener. else
+        we trigger a 'path_down' event with an empty new
+        path and the old path.
+        @param e Event object from a Path
+        @param e.path_id Path ID given to originating Path
+        @param e.start First DPID in originating Path
+        @param e.end Second DPID in originating Path
+        """
+        f = Event()
+        f.path_id = e.path_id
+        f.path = self.paths[e.path_id]
+        f.new_path = self.get_path(e.start, e.end, e.path_id)
+
+        if f.new_path == []:
+            self.handle_event("path_down", f)
+        else:
+            self.handle_event("path_mod", f)
+
+    def handle_path_up(self, e):
+        """
+        Called when a Path has recovered all child path_nodes.
+        When this happens the path and path_id are returned
+        to the listening class.
+        @param e Event object from a Path
+        @param e.path_id Path ID given to originating Path
+        @param e.start First DPID in originating Path
+        @param e.end Second DPID in originating Path
+        """
+        f = Event()
+        f.path_id = e.path_id
+        f.start = e.start
+        f.end = e.end
+        f.path = self.paths[e.path_id]
+
+        self.handle_event("path_up", f)
 
     def id_generator(self):
         pid = 1
         while True:
             pid += 1
             yield pid
-
-    def handle_path_down(self, e):
-        pass
-
-    def handle_path_mod(self, e):
-        pass
-
-    def handle_path_up(self, e):
-        pass
 
 class Switch(object):
     def __init__(self, dpid):
@@ -127,4 +211,3 @@ class Link(object):
 
     def set_weight_function(self, f):
         self.weight_func = f
-
