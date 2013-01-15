@@ -7,7 +7,7 @@ class Path(Eventful):
     def __init__(self, start, end, path):
         Eventful.__init__(self)
         self.path = path
-        self.path_id = pid
+        self.path_id = -1
         self.start = start
         self.end = end
 
@@ -57,7 +57,7 @@ class Path(Eventful):
         f.start = self.start
         f.end = self.end
 
-        print("WARN::Node in path went down. Connection may be recovered.")
+        print("WARN::Node in path went down. A new path must be calculated.")
         self.handle_event("path_down", f)
 
 class PathNode(Eventful):
@@ -80,8 +80,8 @@ class PathNode(Eventful):
     def get_egress(self):
         return self.egress
 
-    def set_egress(self, dpid):
-        self.egress = dpid
+    def set_egress(self, port_no):
+        self.egress = port_no
 
     def is_up(self):
         return self.up
