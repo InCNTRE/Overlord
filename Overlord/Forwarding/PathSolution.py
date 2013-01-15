@@ -29,12 +29,16 @@ def dijkstra(graph, start):
         u = min(q.items(), key=dict_sort)[0]
 
         # v is u's neighbor as a Link object
-        for v in graph[u].get_links():
-            w = v.get_weight()
+        links = graph[u].get_links()
+        for k in links:
+            w = links[k].get_weight()
 
             new_len = dist[u] + w
-            dpid = v.get_dpid()
+            dpid = links[k].get_dpid()
             if new_len < dist[dpid]:
                 q[dpid] = new_len
                 dist[dpid] = new_len
                 pred[dpid] = u
+        del(q[u])
+
+    return pred

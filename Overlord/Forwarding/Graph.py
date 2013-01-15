@@ -166,7 +166,7 @@ class Switch(object):
 
     # Links
     def add_link(self, dpid, in_port):
-        l = Link(in_port)
+        l = Link(dpid, in_port)
         self.links[dpid] = l
 
     def get_links(self):
@@ -180,6 +180,12 @@ class Switch(object):
 
     def update_link(self, dpid, stats):
         self.links[dpid].update_stats(stats)
+
+    def __str__(self):
+        s = "{}::".format(self.dpid)
+        for k in self.links:
+            s += "{} ".format(str(self.links[k]))
+        return s
 
 class Link(object):
     def __init__(self, dpid, in_port):
@@ -211,3 +217,6 @@ class Link(object):
 
     def set_weight_function(self, f):
         self.weight_func = f
+
+    def __str__(self):
+        return "{}:{}".format(self.dpid,self.port)
