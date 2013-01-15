@@ -7,6 +7,7 @@ from ..Lib.Events import Event, Eventful
 
 class Graph(Eventful):
     def __init__(self):
+        Eventful.__init__(self)
         self.path_nodes = {}
         self.paths = {}
         self.switches = {}
@@ -51,6 +52,9 @@ class Graph(Eventful):
             print("No path involoving {} has been provisioned" \
                       .format( str(dpid) ))
 
+    def get_switches(self):
+        return self.switches
+
     def get_path(self, dpid_a, dpid_b, path_id=None):
         """
         Returns a Path object containing PathNodes for
@@ -63,7 +67,7 @@ class Graph(Eventful):
         if path_id == None:
             path_id = self.path_id.next()
 
-        pre = dijkstra(self.switches, dpid_a)
+        pred = dijkstra(self.switches, dpid_a)
         path_of_nodes = self.new_path_nodes(dpid_a, dpid_b, pred)
 
         # Store all nodes by dpid. When a dpid goes down all
@@ -92,21 +96,27 @@ class Graph(Eventful):
         @param dpid_b Dpid of last node in the path
         @param pred A map from a dpid to the predicessor of that dpid
         """
-        if pred[dpid_b] == -1:
-            return []
+        print(dpid_a, dpid_b, dpid_a == dpid_b)
+        #if pred[dpid_b] == -1:
+        #    return []
 
         if dpid_a == dpid_b:
+            #print(dpid_a, dpid_b)
             return [PathNode(dpid_a, None, None)]
         else:
-            b_pre == pred[dpid_b]
+            b_pre = pred[dpid_b]
             i = self.switches[dpid_b].get_link(b_pre).get_port()
 
             nodes = self.new_path_nodes(dpid_a, b_pre, pred)
+            print(nodes)
+
             l_node = nodes[len(nodes)-1]
-            
+                
             e = self.switches[l_node.get_dpid()].get_link(dpid_b).get_port()
             l_node.set_egress(e)
-            return nodes.append( PathNode(dpid_b, i, None) )
+
+            nodes.append(PathNode(dpid_b, i, None))
+            return  nodes
 
     def handle_path_down(self, e):
         """
@@ -169,6 +179,9 @@ class Switch(object):
         l = Link(dpid, in_port)
         self.links[dpid] = l
 
+    def get_link(self, dpid):
+        return self.links[dpid]
+
     def get_links(self):
         return self.links
 
@@ -188,9 +201,9 @@ class Switch(object):
         return s
 
 class Link(object):
-    def __init__(self, dpid, in_port):
+    def __init__(self, dpid, port):
         self.dpid = dpid
-        self.port = in_port
+        self.port = port
         self.stats = {"default" : 1}
 
         def f (stats): return stats["default"]
@@ -202,7 +215,7 @@ class Link(object):
 
     # Port
     def get_port(self):
-        return self.in_port
+        return self.port
 
     # Stats
     def get_stats(self):
