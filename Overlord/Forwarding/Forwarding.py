@@ -18,6 +18,12 @@ class Forwarding(object):
         self.graph.add_listener("path_mod", self.path_mod)
         self.graph.add_listener("path_up", self.path_up)
 
+    def Learn(self, event):
+        self.graph.add_switch(str(event.dpid))
+        
+    def Forget(self, event):
+        self.graph.down_switch(str(event.dpid))
+
     def path_down(self, e):
         c = self.connections[e.path_id]
         flows1 = self.CleanupPath(c.get_host1(), e.path)
