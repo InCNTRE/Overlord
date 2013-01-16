@@ -51,7 +51,19 @@ class Forwarding(object):
             if not dpid in flows_to_install:
                 flows_to_install[dpid] = []
 
-            if n.get_ingress() == None and n.get_egress != None:
+            if n.get_ingress() == None and n.get_egress == None:
+                fmod = of.ofp_flow_mod(hard_timeout=0)
+                fmod.match.dl_dst = EthAddr(host2["mac"])
+                fmod.match.dl_src = EthAddr(host1["mac"])
+                fmod.actions.append(of.ofp_action_output(port=int(host2["port_no"])))
+                flows_to_install[dpid].append(fmod)
+
+                fmod = of.ofp_flow_mod(hard_timeout=0)
+                fmod.match.dl_dst = EthAddr(host1["mac"])
+                fmod.match.dl_src = EthAddr(host2["mac"])
+                fmod.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
+                flows_to_install[dpid].append(fmod)
+            elif n.get_ingress() == None and n.get_egress != None:
                 fmod = of.ofp_flow_mod(hard_timeout=0)
                 fmod.match.dl_dst = EthAddr(host2["mac"])
                 fmod.match.dl_src = EthAddr(host1["mac"])
