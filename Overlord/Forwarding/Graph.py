@@ -39,6 +39,7 @@ class Graph(Eventful):
                 self.path_nodes[dpid].node_up()
         else:
             self.switches[dpid] = Switch(dpid)
+            self.path_nodes[dpid] = []
 
     def down_switch(self, dpid):
         """
@@ -84,7 +85,7 @@ class Graph(Eventful):
         path.add_listener("path_down", self.handle_path_down)
         path.add_listener("path_up", self.handle_path_up)
         self.paths[path_id] = path
-        return Path
+        return path
 
     def new_path_nodes(self, dpid_a, dpid_b, pred):
         """
@@ -96,19 +97,13 @@ class Graph(Eventful):
         @param dpid_b Dpid of last node in the path
         @param pred A map from a dpid to the predicessor of that dpid
         """
-        print(dpid_a, dpid_b, dpid_a == dpid_b)
-        #if pred[dpid_b] == -1:
-        #    return []
-
         if dpid_a == dpid_b:
-            #print(dpid_a, dpid_b)
             return [PathNode(dpid_a, None, None)]
         else:
             b_pre = pred[dpid_b]
             i = self.switches[dpid_b].get_link(b_pre).get_port()
 
             nodes = self.new_path_nodes(dpid_a, b_pre, pred)
-            print(nodes)
 
             l_node = nodes[len(nodes)-1]
                 
@@ -116,7 +111,7 @@ class Graph(Eventful):
             l_node.set_egress(e)
 
             nodes.append(PathNode(dpid_b, i, None))
-            return  nodes
+            return nodes
 
     def handle_path_down(self, e):
         """

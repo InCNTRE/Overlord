@@ -21,6 +21,21 @@ class Path(Eventful):
             p.add_listener("down", self.handle_node_down)
             p.add_listener("up", self.handle_node_up)
 
+    def __eq__(self, o):
+        if isinstance(o, Path):
+            if self.path != o.path:
+                return False
+            if self.start != o.start:
+                return False
+            if self.end != o.end:
+                return False
+            return True
+        else:
+            return False
+
+    def get_nodes(self):
+        return self.path
+
     def all_nodes_up(self):
         for p in self.path:
             if not p.is_up():
@@ -70,6 +85,27 @@ class PathNode(Eventful):
 
         self.add_event("down")
         self.add_event("up")
+
+    def __str__(self):
+        s = "DPID:{} INGRESS:{} EGRESS:{} UP:{}".format(self.dpid, self.ingress, self.egress, self.up)
+        return s
+
+    def __eq__(self, o):
+        if isinstance(o, PathNode):
+            if self.dpid != o.dpid:
+                return False
+            if self.ingress != o.ingress:
+                return False
+            if self.egress != o.egress:
+                return False
+            if self.up != o.up:
+                return False
+            return True
+        else:
+            return False
+
+    def __ne__(self, o):
+        return not self.__eq__(o)
 
     def get_dpid(self):
         return self.dpid

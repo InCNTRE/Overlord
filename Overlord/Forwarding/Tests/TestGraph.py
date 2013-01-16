@@ -23,19 +23,18 @@ class TestGraphFunctions(unittest.TestCase):
         p.append(b)
         p.append(c)
 
-        self.test_path = Path("A", "C", p)
-        self.test_path.set_id(1)
-
         self.test_graph = g
-
-    @unittest.skip("Not done")
-    def test_get_path(self):
-        code_path = self.test_graph.get_path("A", "B")
-        self.assertEqual(self.test_path, code_path)
+        self.test_path = Path("A", "C", p)
 
     def test_new_path_nodes(self):
         pred = dijkstra(self.test_graph.get_switches(), "A")
-        print(pred)
-        path_nodes = self.test_graph.new_path_nodes("A", "C", pred)
 
-        self.assertEqual(self.test_path, path_nodes)
+        test_nodes = self.test_path.get_nodes()
+        path_nodes = self.test_graph.new_path_nodes("A", "C", pred)
+        self.assertEqual(test_nodes, path_nodes)
+
+    def test_get_path(self):
+        path = self.test_graph.get_path("A", "C")
+        print(self.test_path)
+        print(path)
+        self.assertEqual(self.test_path, path)
