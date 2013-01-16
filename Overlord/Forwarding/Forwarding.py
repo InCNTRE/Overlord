@@ -20,11 +20,13 @@ class Forwarding(object):
 
     def path_down(self, e):
         c = self.connections[e.path_id]
-        self.Disconnect(c.get_host1(), c.get_host2(), e.path)
+        flows1 = self.CleanupPath(c.get_host1(), e.path)
+        flows2 = self.CleanupPath(c.get_host2(), e.path)
 
     def path_mod(self, e):
         c = self.connections[e.path_id]
-        self.Disconnect(c.get_host1(), c.get_host2(), e.path)
+        flows1 = self.CleanupPath(c.get_host1(), e.path)
+        flows2 = self.CleanupPath(c.get_host2(), e.path)
         self.Connect(c.get_host1(), c.get_host2(), e.new_path)
 
     def path_up(self, e):
@@ -105,24 +107,40 @@ class Forwarding(object):
         #devices.Connection(log, host1["_parent"]).send(fmod)
         return flows_to_install
 
-    def Disconnect(self, host1, host2, path):
-        conn = devices.Connection(log, host["_parent"])
+    def Disconnect(self, host):
+        #conn = devices.Connection(log, host["_parent"])
 
         # Remove the from host rules
         fmod1 = of.ofp_flow_mod()
         fmod1.match.dl_src = EthAddr(host["mac"])
         fmod1.command = of.OFPFC_DELETE
+        
         # Remove the to host rules
         fmod2 = of.ofp_flow_mod()
         fmod2.match.dl_dst = EthAddr(host["mac"])
         fmod2.command = of.OFPFC_DELETE
+        flows = [fmod1, fmod2] 
+        return flows
 
-        try:
-            conn.send(fmod1)
-            conn.send(fmod2)
-            #log.info("Removing flows to disconnect device: " + str(host["_name"]))
-        except AttributeError:
-            pass
+    def CleanupPath(self, host, path):
+        flows_to_install = {}
+
+        for i in range( len(path) ):
+            dpid = path.at(i).get_dpid()
+            if not dpid in flows_to_install:
+                flows_to_install[dpid] = []
+
+            # Remove the from host rules
+            fmod1 = of.ofp_flow_mod()
+            fmod1.match.dl_src = EthAddr(host["mac"])
+            fmod1.command = of.OFPFC_DELETE
+            
+            # Remove the to host rules
+            fmod2 = of.ofp_flow_mod()
+            fmod2.match.dl_dst = EthAddr(host["mac"])
+            fmod2.command = of.OFPFC_DELETE
+            flows_to_install[dpid] = [fmod1, fmod2]
+        return flows_to_install
 
     def Group(self, log, db, devices, links, host):
         """
@@ -130,7 +148,11 @@ class Forwarding(object):
         """
         group_members = db.hosts.find({"group_no": host["group_no"]})
         for h in group_members:
-            self.Connect(log, db, devices, links, host, h)
+            #self.Connect(log, db, devices, links, host, h)
+            flows = self.Connect(host, h)
+            for k in flows:
+                for f in flows[k]:
+                    devices.Connection(log, k).send(f)
 
     def Ungroup(self):
         pass

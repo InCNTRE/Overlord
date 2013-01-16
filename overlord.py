@@ -73,7 +73,12 @@ def _handleWebCommand(event):
                 host["group_no"] = str( cmd[u"group_no"] )
                 db.hosts.save(host)
 
-                forwarding.Disconnect(log, devices, host)
+                flows = forwarding.Disconnect(host)
+                switches = devices.AllConnections()
+                for f in flows:
+                    for k in switches:
+                        switches[k].send(f)
+
                 if host["group_no"] != "-1":
                     forwarding.Group(log, db, devices, links, host)
             except LookupError:

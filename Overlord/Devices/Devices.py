@@ -62,6 +62,9 @@ class Devices(object):
         except KeyError:
             log.error("Tried to delete nonexistent Switch from memory")
         
+    def AllConnections(self):
+        return self.switches
+
     def Connection(self, log, dpid):
         try:
             return self.switches[str(dpid)]
