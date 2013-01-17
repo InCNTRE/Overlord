@@ -59,7 +59,7 @@ class Forwarding(object):
             if not dpid in flows_to_install:
                 flows_to_install[dpid] = []
 
-            if n.get_ingress() == None and n.get_egress == None:
+            if n.get_ingress() == None and n.get_egress() == None:
                 fmod = of.ofp_flow_mod(hard_timeout=0)
                 fmod.match.dl_dst = EthAddr(host2["mac"])
                 fmod.match.dl_src = EthAddr(host1["mac"])
@@ -71,7 +71,7 @@ class Forwarding(object):
                 fmod.match.dl_src = EthAddr(host2["mac"])
                 fmod.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
                 flows_to_install[dpid].append(fmod)
-            elif n.get_ingress() == None and n.get_egress != None:
+            elif n.get_ingress() == None and n.get_egress() != None:
                 fmod = of.ofp_flow_mod(hard_timeout=0)
                 fmod.match.dl_dst = EthAddr(host2["mac"])
                 fmod.match.dl_src = EthAddr(host1["mac"])
@@ -83,7 +83,7 @@ class Forwarding(object):
                 fmod.match.dl_src = EthAddr(host2["mac"])
                 fmod.actions.append(of.ofp_action_output(port=int(host1["port_no"])))
                 flows_to_install[dpid].append(fmod)
-            elif n.get_ingress() != None and n.get_egress == None:
+            elif n.get_ingress() != None and n.get_egress() == None:
                 fmod = of.ofp_flow_mod(hard_timeout=0)
                 fmod.match.dl_dst = EthAddr(host2["mac"])
                 fmod.match.dl_src = EthAddr(host1["mac"])
@@ -95,7 +95,7 @@ class Forwarding(object):
                 fmod.match.dl_src = EthAddr(host2["mac"])
                 fmod.actions.append(of.ofp_action_output(port=int(n.get_ingress())))
                 flows_to_install[dpid].append(fmod)
-            elif n.get_ingress() != None and n.get_egress != None:
+            elif n.get_ingress() != None and n.get_egress() != None:
                 fmod = of.ofp_flow_mod(hard_timeout=0)
                 fmod.match.dl_dst = EthAddr(host2["mac"])
                 fmod.match.dl_src = EthAddr(host1["mac"])
@@ -162,3 +162,18 @@ class Forwarding(object):
 
     def Ungroup(self):
         pass
+
+class Connection(object):
+    def __init__(self, path_id, host1, host2):
+        self.path_id = path_id
+        self.host1 = host1
+        self.host2 = host2
+
+    def get_host1(self):
+        return self.host1
+
+    def get_host2(self):
+        return self.host2
+
+    def get_id(self):
+        return self.path_id

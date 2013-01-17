@@ -45,17 +45,17 @@ def launch():
     links = oLnk.Links()
     forwarding = oFwd.Forwarding()
 
-    # Connect to db
+    # Connect to db')
     conn = Connection()
     db = conn['overlord']
 
-    # Initialize Message Queue
+    # Initialize Message Queue')
     if "messages" in db.collection_names():
         db["messages"].drop()
         db.create_collection("messages", size=100000, max=100, capped=True)
         db.messages.insert({"message": "null"})
         
-    # Overlord Events
+    # Overlord Events')
     oEvents = oMsg.OverlordMessage()
     oEvents.addListenerByName("WebCommand", _handleWebCommand)
     t = Thread(target=oEvents.run, args=(db,))

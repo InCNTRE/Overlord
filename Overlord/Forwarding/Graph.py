@@ -34,6 +34,7 @@ class Graph(Eventful):
         with dpid.
         @param dpid Dpid of new switch connection
         """
+        dpid = str(dpid)
         if dpid in self.switches:
             for p in self.path_nodes:
                 self.path_nodes[dpid].node_up()
@@ -46,6 +47,7 @@ class Graph(Eventful):
         Triggers event causing the recalculation of links.
         @param dpid Dpid of device connection that went down
         """
+        dpid = str(dpid)
         try:
             for n in self.path_nodes[dpid]:
                 n.node_down()
@@ -64,6 +66,8 @@ class Graph(Eventful):
         @param dpid_b Dpid of second host device
         @param path_id ID of path
         """
+        dpid_a = str(dpid_a)
+        dpid_b = str(dpid_b)
         #TODO:: Update this code to build path
         if path_id == None:
             path_id = self.path_id.next()
@@ -76,7 +80,10 @@ class Graph(Eventful):
         path = Path(dpid_a, dpid_b, path_of_nodes)
         for i in range( len(path) ):
             p = path.at(i)
-            self.path_nodes[p.get_dpid()].append(p)
+            dpid = p.get_dpid()
+            if not dpid in self.path_nodes:
+                self.path_nodes[dpid] = []
+            self.path_nodes[dpid].append(p)
 
         # Store all paths by path_id. When a node in a path
         # goes down the path will be notified and send an
@@ -97,6 +104,8 @@ class Graph(Eventful):
         @param dpid_b Dpid of last node in the path
         @param pred A map from a dpid to the predicessor of that dpid
         """
+        dpid_a = str(dpid_a)
+        dpid_b = str(dpid_b)
         if dpid_a == dpid_b:
             return [PathNode(dpid_a, None, None)]
         else:
