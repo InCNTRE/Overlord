@@ -106,6 +106,8 @@ def _handlePacketIn(event):
     # Track Network Devices
     devices.Learn(log, db, event)
     # Learn Network Device Links
-    links.Learn(event)
+    l = links.Learn(event)
+    if not l is None:
+        forwarding.add_link(l[0], l[1], l[2])
     # Track Hosts
     hosts.Learn(log, db, forwarding, links, event)

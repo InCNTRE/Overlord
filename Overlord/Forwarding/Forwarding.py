@@ -18,6 +18,9 @@ class Forwarding(object):
         self.graph.add_listener("path_mod", self.path_mod)
         self.graph.add_listener("path_up", self.path_up)
 
+    def add_link(self, in_dpid, in_port, org_dpid):
+        self.graph.add_link(in_dpid, org_dpid, in_port)
+
     def Learn(self, event):
         self.graph.add_switch(str(event.dpid))
         
