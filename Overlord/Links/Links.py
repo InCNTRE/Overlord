@@ -1,16 +1,34 @@
 # import Overlord.Links
+from pox.lib.recoco import Timer
 
 class Links(object):
     """Learn and track network device Links"""
     def __init__(self):
-        pass
+        self.switches = {}
+        self.mac_map = {}
+        Timer(10, self.handle_timer_tick, recurring = True)
 
-    def Learn(self, log, event):
+    def handle_timer_tick(self):
+        print("Timer just ticked")
+        for k in self.switches:
+            print("Sending link message to : " + k)
+
+    def Learn(self, event):
         """Called to learn links on every lldp packet in"""
-        pkt = event.parse()
+        if str(type(event)) == "<class 'pox.openflow.ConnectionUp'>":
+            # Save a connection to this DPID
+            self.switches[str(event.dpid)] = event.connection
+        else:
+            pkt = event.parse()
+            
+            if pkt.type == 35020:
+                self.learnLldp(event, pkt)
 
-        if pkt.type == 35020:
-            self.learnLldp(event, pkt)
+    def Forget(self, event):
+        try:
+            del(self.switches[str(event.dpid)])
+        except KeyError:
+            pass
 
     def learnLldp(self, event, pkt):
         lldp_pkt = pkt.next
@@ -20,10 +38,3 @@ class Links(object):
         """Creates an LLDP packet to be sent via packet out
         whenever a new Network Device is discovered"""
         pass
-
-    def ResolvePath(self, host1, host2, strategy=None):
-        if host1["_parent"] == host2["_parent"]:
-            return []
-        else: # strategy == None
-            # Find a valid path. Don't worry about anything else.
-            return None

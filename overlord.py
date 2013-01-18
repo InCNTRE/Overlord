@@ -95,6 +95,7 @@ def _handleWebCommand(event):
 
 def _handleConnectionUp(event):
     devices.Learn(log, db, event, fwding=forwarding, lnks=links)
+    links.Learn(event)
     forwarding.Learn(event)
 
 def _handleConnectionDown(event):
@@ -105,6 +106,6 @@ def _handlePacketIn(event):
     # Track Network Devices
     devices.Learn(log, db, event)
     # Learn Network Device Links
-    links.Learn(log, event)
+    links.Learn(event)
     # Track Hosts
     hosts.Learn(log, db, forwarding, links, event)
