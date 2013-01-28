@@ -23,14 +23,15 @@ class Devices(object):
             in case any meta data had been created for the device on a
             previous launch.
             """
-            self.switches[str(event.dpid)] = event.connection
-            d = db.devices.find_one({'dpid': str(event.dpid)})
+            dpid = str(event.dpid)
+            self.switches[dpid] = event.connection
+            d = db.devices.find_one({'dpid': dpid})
             if d is None:
                 d = {}
-            d["dpid"] = str(event.dpid)
+            d["dpid"] = dpid
             db.devices.save(d)
+            log.info("Connected to switch: " + dpid)
 
-            log.info("Connected to switch: " + str(event.dpid))
             # Delete any existing flows in the switch.
             msg = of.ofp_flow_mod()
             msg.command = of.OFPFC_DELETE
@@ -45,7 +46,7 @@ class Devices(object):
 
             if fwding != None and lnks != None:
                 log.info("Building host links in line with database.")
-                hosts = db.hosts.find({'_parent': str(event.dpid)})
+                hosts = db.hosts.find({'_parent': dpid})
                 for h in hosts:
                     log.info(h)
                     if h['group_no'] != '-1':
