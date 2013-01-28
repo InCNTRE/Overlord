@@ -12,7 +12,9 @@ class Devices(object):
     """
     def __init__(self):
         self.switches = {}
+        self.ungrouped_hosts = []
 
+    # Register fwding with core so no need to pass fwding and links
     def Learn(self, log, db, event, fwding=None, lnks=None):
         """
         Learn dpid and ports
@@ -44,14 +46,24 @@ class Devices(object):
             msg.actions.append(of.ofp_action_output(port=of.OFPP_CONTROLLER))
             event.connection.send(msg)
 
+            # Attempt to group all hosts connected to dpid
             if fwding != None and lnks != None:
                 log.info("Building host links in line with database.")
                 hosts = db.hosts.find({'_parent': dpid})
                 for h in hosts:
                     log.info(h)
                     if h['group_no'] != '-1':
-                        fwding.Group(log, db, self, lnks, h)
-                        
+                        # If group is unsuccessful save ungrouped hosts
+                        ungrouped_hosts = fwding.Group(log, db, self, lnks, h)
+                        self.ungrouped_hosts.append(ungrouped_hosts)
+            
+            # Attempt to group any hosts that have not yet been connected
+            # Though seems repetitive, used to address switches that link
+            # hosts that are grouped in adjacent switches.
+            for host in self.ungrouped_hosts:
+                if not host in fwding.Group(log, db, self, lnks, host):
+                    del(host)
+
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
             self.relearnPorts(event)

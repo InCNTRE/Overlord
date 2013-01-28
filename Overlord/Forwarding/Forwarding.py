@@ -116,7 +116,6 @@ class Forwarding(object):
             else:
                 print("ERROR::This should not have happened.")
 
-        #devices.Connection(log, host1["_parent"]).send(fmod)
         return flows_to_install
 
     def Disconnect(self, host):
@@ -158,6 +157,7 @@ class Forwarding(object):
         """
         Builds connections between host and all of his group members.
         """
+        ungroupables = []
         group_members = db.hosts.find({"group_no": host["group_no"]})
         for h in group_members:
             #self.Connect(log, db, devices, links, host, h)
@@ -166,6 +166,10 @@ class Forwarding(object):
                 for k in flows:
                     for f in flows[k]:
                         devices.Connection(log, k).send(f)
+            else:
+                # h could not be connected to host
+                ungroupables.append(h)
+        return ungroupables
 
     def Ungroup(self):
         pass
