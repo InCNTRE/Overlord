@@ -66,6 +66,9 @@ class Graph(Eventful):
         @param dpid_b Dpid of second host device
         @param path_id ID of path
         """
+        if not dpid_a in self.switches or not dpid_b in self.switches:
+            return None
+
         dpid_a = str(dpid_a)
         dpid_b = str(dpid_b)
         #TODO:: Update this code to build path
@@ -109,18 +112,21 @@ class Graph(Eventful):
         if dpid_a == dpid_b:
             return [PathNode(dpid_a, None, None)]
         else:
-            b_pre = pred[dpid_b]
-            i = self.switches[dpid_b].get_link(b_pre).get_port()
-
-            nodes = self.new_path_nodes(dpid_a, b_pre, pred)
-
-            l_node = nodes[len(nodes)-1]
+            try:
+                b_pre = pred[dpid_b]
+                i = self.switches[dpid_b].get_link(b_pre).get_port()
                 
-            e = self.switches[l_node.get_dpid()].get_link(dpid_b).get_port()
-            l_node.set_egress(e)
-
-            nodes.append(PathNode(dpid_b, i, None))
-            return nodes
+                nodes = self.new_path_nodes(dpid_a, b_pre, pred)
+                
+                l_node = nodes[len(nodes)-1]
+                
+                e = self.switches[l_node.get_dpid()].get_link(dpid_b).get_port()
+                l_node.set_egress(e)
+                
+                nodes.append(PathNode(dpid_b, i, None))
+                return nodes
+            except KeyError:
+                pass
 
     def handle_path_down(self, e):
         """

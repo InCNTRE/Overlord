@@ -52,6 +52,9 @@ class Forwarding(object):
         """
         if path == None:
             path = self.graph.get_path(host1["_parent"], host2["_parent"])
+        if path == None:
+            return None
+
         self.connections[path.get_id()] = Connection(path.get_id(), host1, host2)
 
         flows_to_install = {}
@@ -159,9 +162,10 @@ class Forwarding(object):
         for h in group_members:
             #self.Connect(log, db, devices, links, host, h)
             flows = self.Connect(host, h)
-            for k in flows:
-                for f in flows[k]:
-                    devices.Connection(log, k).send(f)
+            if flows != None:
+                for k in flows:
+                    for f in flows[k]:
+                        devices.Connection(log, k).send(f)
 
     def Ungroup(self):
         pass
