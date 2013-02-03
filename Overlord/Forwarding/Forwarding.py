@@ -145,8 +145,6 @@ class Forwarding(Eventful):
         return flows_to_install
 
     def Disconnect(self, host):
-        #conn = devices.Connection(log, host["_parent"])
-
         # Remove the from host rules
         fmod1 = of.ofp_flow_mod()
         fmod1.match.dl_src = EthAddr(host["mac"])
@@ -183,27 +181,14 @@ class Forwarding(Eventful):
         """
         Builds connections between host and all of his group members.
         """
-  #      ungroupables = []
         group_members = db.hosts.find({"group_no": host["group_no"]})
-        #print("Members: {}".format(group_members))
         for h in group_members:
-            #print(h)
-            #self.Connect(log, db, devices, links, host, h)
             flows = self.Connect(host, h)
             if flows != None:
-                print("Grouping host: {}".format(h))
+                print("Grouping host: {}".format(h["mac"]))
                 for k in flows:
                     for f in flows[k]:
                         devices.Connection(log, k).send(f)
-#            else:
-                # h could not be connected to host
-                #if h["mac"] != host["mac"]:
-                    #print("Adding {} and {}".format(h["mac"], host["mac"]))
- #               ungroupables.append(h)
-  #      return ungroupables
-
-    def Ungroup(self):
-        pass
 
 class Connection(object):
     def __init__(self, path_id, host1, host2):
