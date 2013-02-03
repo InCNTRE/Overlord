@@ -44,6 +44,7 @@ def launch():
     hosts = oHos.Hosts()
     links = oLnk.Links()
     forwarding = oFwd.Forwarding()
+    forwarding.add_listener("new_flows", _handleNewFlows)
 
     # Connect to db')
     conn = Connection()
@@ -61,6 +62,11 @@ def launch():
     t = Thread(target=oEvents.run, args=(db,))
     t.setDaemon(True)
     t.start()
+
+def _handleNewFlows(event):
+    for dpid in event.flows:
+        for f in flows:
+            devices.Connection(dpid).Send(f)
 
 # This could probably be cleaned up a bit. Maybe push it down into forwarding.Group.
 def _handleWebCommand(event):

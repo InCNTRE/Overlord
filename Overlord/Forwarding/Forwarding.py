@@ -7,12 +7,15 @@ import pox.openflow.libopenflow_01 as of
 from Graph import *
 from Path import *
 from PathSolution import dijkstra
+from ..Lib.Events import Event, Eventful
 
-class Forwarding(object):
+class Forwarding(Eventful):
     """Create Forwarding rules for Host to Host communication"""
     def __init__(self):
         self.graph = Graph()
         self.connections = {}
+
+        self.add_event("new_flows")
 
         self.graph.add_listener("path_down", self.path_down)
         self.graph.add_listener("path_mod", self.path_mod)
@@ -30,19 +33,41 @@ class Forwarding(object):
     def path_down(self, e):
         c = self.connections[e.path_id]
         flows1 = self.CleanupPath(c.get_host1(), e.path)
+        if flows1 != {}:
+            e = Event()
+            e.flows = flows1
+            self.handle_event("new_flows", e)
         flows2 = self.CleanupPath(c.get_host2(), e.path)
+        if flows2 != {}:
+            e = Event()
+            e.flows = flows2
+            self.handle_event("new_flows", e)
 
     def path_mod(self, e):
         c = self.connections[e.path_id]
         flows1 = self.CleanupPath(c.get_host1(), e.path)
+        if flows1 != {}:
+            e = Event()
+            e.flows = flows1
+            self.handle_event("new_flows", e)
         flows2 = self.CleanupPath(c.get_host2(), e.path)
-        # Install flows1 and flows2
+        if flows2 != {}:
+            e = Event()
+            e.flows = flows2
+            self.handle_event("new_flows", e)
         flows3 = self.Connect(c.get_host1(), c.get_host2(), e.new_path)
-        # Install flows3
+        if flows3 != {}:
+            e = Event()
+            e.flows = flows3
+            self.handle_event("new_flows", e)
 
     def path_up(self, e):
         c = self.connections[e.path_id]
-        self.Connect(c.get_host1(), c.get_host2(), e.path)
+        flows = self.Connect(c.get_host1(), c.get_host2(), e.path)
+        if flows != {}:
+            e = Event()
+            e.flows = flows
+            self.handle_event("new_flows", e)
 
     def Connect(self, host1, host2, path=None):
         """
