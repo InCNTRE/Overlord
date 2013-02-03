@@ -77,6 +77,8 @@ class Graph(Eventful):
 
         pred = dijkstra(self.switches, dpid_a)
         path_of_nodes = self.new_path_nodes(dpid_a, dpid_b, pred)
+        if path_of_nodes == None:
+            return None
 
         # Store all nodes by dpid. When a dpid goes down all
         # nodes will be notified of the event.

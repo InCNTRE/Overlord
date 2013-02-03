@@ -94,9 +94,9 @@ def _handleWebCommand(event):
         log.error("Recived invalid message")
 
 def _handleConnectionUp(event):
+    forwarding.Learn(event)
     devices.Learn(log, db, event, fwding=forwarding, lnks=links)
     links.Learn(event)
-    forwarding.Learn(event)
 
 def _handleConnectionDown(event):
     devices.Forget(log, event)

@@ -51,19 +51,32 @@ class Devices(object):
                 log.info("Building host links in line with database.")
                 hosts = db.hosts.find({'_parent': dpid})
                 for h in hosts:
-                    log.info(h)
                     if h['group_no'] != '-1':
+                        orphan_hosts = fwding.Group(log, db, self, lnks, h)
+                        # Any host in h's group who couldn't be grouped
                         # If group is unsuccessful save ungrouped hosts
-                        ungrouped_hosts = fwding.Group(log, db, self, lnks, h)
-                        self.ungrouped_hosts.append(ungrouped_hosts)
-            
-            # Attempt to group any hosts that have not yet been connected
-            # Though seems repetitive, used to address switches that link
-            # hosts that are grouped in adjacent switches.
+                        for h in orphan_hosts:
+                            if not h in self.ungrouped_hosts:
+                                print("Discovered orphan: {}".format(h["mac"]))
+                                self.ungrouped_hosts.append(h)
+
+            #print("Ungroupables: {}".format(self.ungrouped_hosts))
             for host in self.ungrouped_hosts:
-                if not host in fwding.Group(log, db, self, lnks, host):
+                print("Trying to group orphan: {}".format(host["mac"]))
+                orphan_hosts = fwding.Group(log, db, self, lnks, host)
+                # Any host in h's group who couldn't be grouped
+                # If group is unsuccessful save ungrouped hosts
+                #for o in orphan_hosts:
+                #    if not o in self.ungrouped_hosts:
+                #        print("Discovered orphan: {}".format(o["mac"]))
+                #        self.ungrouped_hosts.append(o)
+                if orphan_hosts == []:
+                    return
+                if not host in orphan_hosts:
+                    print("Removing orphaned host: {}".format(host))
                     del(host)
 
+            
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
             self.relearnPorts(event)

@@ -159,15 +159,20 @@ class Forwarding(object):
         """
         ungroupables = []
         group_members = db.hosts.find({"group_no": host["group_no"]})
+        #print("Members: {}".format(group_members))
         for h in group_members:
+            #print(h)
             #self.Connect(log, db, devices, links, host, h)
             flows = self.Connect(host, h)
             if flows != None:
+                print("Grouping host: {}".format(h))
                 for k in flows:
                     for f in flows[k]:
                         devices.Connection(log, k).send(f)
             else:
                 # h could not be connected to host
+                #if h["mac"] != host["mac"]:
+                    #print("Adding {} and {}".format(h["mac"], host["mac"]))
                 ungroupables.append(h)
         return ungroupables
 
