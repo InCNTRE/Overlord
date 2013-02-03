@@ -65,8 +65,8 @@ def launch():
 
 def _handleNewFlows(event):
     for dpid in event.flows:
-        for f in flows:
-            devices.Connection(dpid).Send(f)
+        for f in event.flows[dpid]:
+            devices.Connection(log, dpid).send(f)
 
 # This could probably be cleaned up a bit. Maybe push it down into forwarding.Group.
 def _handleWebCommand(event):

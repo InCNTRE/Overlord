@@ -12,6 +12,7 @@ from ..Lib.Events import Event, Eventful
 class Forwarding(Eventful):
     """Create Forwarding rules for Host to Host communication"""
     def __init__(self):
+        Eventful.__init__(self)
         self.graph = Graph()
         self.connections = {}
 

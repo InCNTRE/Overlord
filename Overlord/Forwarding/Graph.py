@@ -149,7 +149,7 @@ class Graph(Eventful):
                 nodes.append(PathNode(dpid_b, i, None))
                 return nodes
             except KeyError:
-                pass
+                return []
 
     def handle_path_down(self, e):
         """
