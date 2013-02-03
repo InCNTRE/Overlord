@@ -183,7 +183,7 @@ class Forwarding(Eventful):
         """
         Builds connections between host and all of his group members.
         """
-        ungroupables = []
+  #      ungroupables = []
         group_members = db.hosts.find({"group_no": host["group_no"]})
         #print("Members: {}".format(group_members))
         for h in group_members:
@@ -195,12 +195,12 @@ class Forwarding(Eventful):
                 for k in flows:
                     for f in flows[k]:
                         devices.Connection(log, k).send(f)
-            else:
+#            else:
                 # h could not be connected to host
                 #if h["mac"] != host["mac"]:
                     #print("Adding {} and {}".format(h["mac"], host["mac"]))
-                ungroupables.append(h)
-        return ungroupables
+ #               ungroupables.append(h)
+  #      return ungroupables
 
     def Ungroup(self):
         pass

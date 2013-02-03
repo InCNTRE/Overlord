@@ -12,7 +12,7 @@ class Devices(object):
     """
     def __init__(self):
         self.switches = {}
-        self.ungrouped_hosts = []
+        #self.ungrouped_hosts = []
 
     # Register fwding with core so no need to pass fwding and links
     def Learn(self, log, db, event, fwding=None, lnks=None):
@@ -55,26 +55,26 @@ class Devices(object):
                         orphan_hosts = fwding.Group(log, db, self, lnks, h)
                         # Any host in h's group who couldn't be grouped
                         # If group is unsuccessful save ungrouped hosts
-                        for h in orphan_hosts:
-                            if not h in self.ungrouped_hosts:
-                                print("Discovered orphan: {}".format(h["mac"]))
-                                self.ungrouped_hosts.append(h)
+                        #for h in orphan_hosts:
+                        #    if not h in self.ungrouped_hosts:
+                        #        print("Discovered orphan: {}".format(h["mac"]))
+                        #        self.ungrouped_hosts.append(h)
 
             #print("Ungroupables: {}".format(self.ungrouped_hosts))
-            for host in self.ungrouped_hosts:
-                print("Trying to group orphan: {}".format(host["mac"]))
-                orphan_hosts = fwding.Group(log, db, self, lnks, host)
+            #for host in self.ungrouped_hosts:
+            #    print("Trying to group orphan: {}".format(host["mac"]))
+            #    orphan_hosts = fwding.Group(log, db, self, lnks, host)
                 # Any host in h's group who couldn't be grouped
                 # If group is unsuccessful save ungrouped hosts
                 #for o in orphan_hosts:
                 #    if not o in self.ungrouped_hosts:
                 #        print("Discovered orphan: {}".format(o["mac"]))
                 #        self.ungrouped_hosts.append(o)
-                if orphan_hosts == []:
-                    return
-                if not host in orphan_hosts:
-                    print("Removing orphaned host: {}".format(host))
-                    del(host)
+           #     if orphan_hosts == []:
+           #         return
+           #     if not host in orphan_hosts:
+           #         print("Removing orphaned host: {}".format(host))
+           #         del(host)
 
             
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
