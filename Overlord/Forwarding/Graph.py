@@ -20,12 +20,26 @@ class Graph(Eventful):
 
     def add_link(self, rcvr_dpid, sndr_dpid, in_port):
         """
-        Adds a link to a Switch objects internal link structure.
+        Adds a directed link to a Switch objects internal link
+        structure. Then attempt to recalculate all connections
+        with no known path.
         @ param rcvr_dpid Dpid of recieving device
         @ param sndr_dpid Dpid of sending device
         @ param in_port Port number of recieving device
         """
         self.switches[rcvr_dpid].add_link(sndr_dpid, in_port)
+
+        for k in self.paths:
+            p = self.paths[k]
+            if len(p) is 0:
+                new_path = self.get_path(p.start, p.end, p.path_id)
+                if p != new_path:
+                    self.paths[k] = new_path
+                    e = Event()
+                    e.path_id = new_path.path_id
+                    e.path = []
+                    e.new_path = new_path
+                    self.handle_event("path_mod", e)
 
     def add_switch(self, dpid):
         """
@@ -66,19 +80,23 @@ class Graph(Eventful):
         @param dpid_b Dpid of second host device
         @param path_id ID of path
         """
-        if not dpid_a in self.switches or not dpid_b in self.switches:
-            return None
+        #if not dpid_a in self.switches or not dpid_b in self.switches:
+        #    return None
 
         dpid_a = str(dpid_a)
         dpid_b = str(dpid_b)
-        #TODO:: Update this code to build path
         if path_id == None:
             path_id = self.path_id.next()
 
+        # Find a path from all other switches to dpid_a
         pred = dijkstra(self.switches, dpid_a)
-        path_of_nodes = self.new_path_nodes(dpid_a, dpid_b, pred)
-        if path_of_nodes == None:
-            return None
+
+        path_of_nodes = []
+        if dpid_a in self.switches and dpid_b in self.switches:
+            path_of_nodes = self.new_path_nodes(dpid_a, dpid_b, pred)
+
+        #if path_of_nodes == None:
+        #    return None
 
         # Store all nodes by dpid. When a dpid goes down all
         # nodes will be notified of the event.
@@ -113,9 +131,12 @@ class Graph(Eventful):
         dpid_b = str(dpid_b)
         if dpid_a == dpid_b:
             return [PathNode(dpid_a, None, None)]
+        elif pred[dpid_b] == -1:
+            return []
         else:
             try:
                 b_pre = pred[dpid_b]
+
                 i = self.switches[dpid_b].get_link(b_pre).get_port()
                 
                 nodes = self.new_path_nodes(dpid_a, b_pre, pred)

@@ -36,7 +36,9 @@ class Forwarding(object):
         c = self.connections[e.path_id]
         flows1 = self.CleanupPath(c.get_host1(), e.path)
         flows2 = self.CleanupPath(c.get_host2(), e.path)
-        self.Connect(c.get_host1(), c.get_host2(), e.new_path)
+        # Install flows1 and flows2
+        flows3 = self.Connect(c.get_host1(), c.get_host2(), e.new_path)
+        # Install flows3
 
     def path_up(self, e):
         c = self.connections[e.path_id]
@@ -52,8 +54,6 @@ class Forwarding(object):
         """
         if path == None:
             path = self.graph.get_path(host1["_parent"], host2["_parent"])
-        if path == None:
-            return None
 
         self.connections[path.get_id()] = Connection(path.get_id(), host1, host2)
 
