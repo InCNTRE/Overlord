@@ -4,14 +4,20 @@
 # Usage
 # from Overlord.Devices import Devices as oDev
 # devices = oDev.Devices()
+from ..Lib.Events import Event, Eventful
+
 import pox.openflow.libopenflow_01 as of
 
-class Devices(object):
+class Devices(Eventful):
     """
     Learn and track Network Devices
     """
     def __init__(self):
+        Eventful.__init__(self)
         self.switches = {}
+
+        self.add_event("port_up")
+        self.add_event("port_down")
 
     # Register fwding with core so no need to pass fwding and links
     def Learn(self, log, db, event, fwding=None, lnks=None):
@@ -20,9 +26,9 @@ class Devices(object):
         """
         if str(type(event)) == "<class 'pox.openflow.ConnectionUp'>":
             """
-            Save devices locally and in the db. Search for device first
-            in case any meta data had been created for the device on a
-            previous launch.
+            Save devices locally and in the db. Search for device
+            in db first in case meta data had previously been
+            created.
             """
             dpid = str(event.dpid)
             self.switches[dpid] = event.connection
@@ -55,9 +61,12 @@ class Devices(object):
                                     
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
-            self.relearnPorts(event)
+            self.relearn_ports(event)
 
     def Forget(self, log, event):
+        """
+        Locally forget about an Openflow Device.
+        """
         try:
             del(self.switches[str(event.dpid)])
             log.info("Lost connection to switch: " + str(event.dpid))
@@ -65,20 +74,30 @@ class Devices(object):
             log.error("Tried to delete nonexistent Switch from memory")
         
     def AllConnections(self):
+        """
+        Returns a dict of all active switch connections.
+        """
         return self.switches
 
     def Connection(self, log, dpid):
+        """
+        Return a connection associated with dpid otherwise do
+        nothing.
+        """
         try:
             return self.switches[str(dpid)]
         except KeyError:
             log.error("Could not find a Connection for desired Device.")
 
-    def memorizePorts(self, dpid, ports):
-        """ Publishes all ports to a database."""
-        pass
-
-    def relearnPorts(self, event):
-        """ Publishes port updates to a database.
-        Links involving these ports should be
-        relearnt."""
-        pass
+    def relearn_ports(self, event):
+        """
+        Throws either a port_up or port_down event to listening
+        classes.
+        """
+        e = Event()
+        e.dpid = event.dpid
+        e.port = event.port
+        if event.added:
+            self.handle_event("port_up", e)
+        elif event.deleted:
+            self.handle_event("port_down", e)
