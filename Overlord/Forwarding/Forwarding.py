@@ -32,6 +32,11 @@ class Forwarding(Eventful):
         self.graph.down_switch(str(event.dpid))
 
     def path_down(self, e):
+        """
+        Called whenever self.graph is notified that a path no
+        longer exists. Cleans up any flows across the network
+        related to the path e.path_id.
+        """
         c = self.connections[e.path_id]
         flows1 = self.CleanupPath(c.get_host1(), e.path)
         if flows1 != {}:
@@ -45,6 +50,13 @@ class Forwarding(Eventful):
             self.handle_event("new_flows", e)
 
     def path_mod(self, e):
+        """
+        Called whenever self.graph is notified that a path no
+        longer exists, and self.graph has determined an alternate
+        path exists. Cleans up any flows across the network
+        related to the path e.path_id and throws a new_flows
+        event.
+        """
         c = self.connections[e.path_id]
         flows1 = self.CleanupPath(c.get_host1(), e.path)
         if flows1 != {}:
@@ -63,6 +75,11 @@ class Forwarding(Eventful):
             self.handle_event("new_flows", e)
 
     def path_up(self, e):
+        """
+        Called whenever self.graph is notified that an existing
+        path that was once down has come back up. Since downed
+        paths are already cleaned up, throw a new_flows event.
+        """
         c = self.connections[e.path_id]
         flows = self.Connect(c.get_host1(), c.get_host2(), e.path)
         if flows != {}:
