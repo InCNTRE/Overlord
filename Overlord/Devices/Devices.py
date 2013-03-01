@@ -68,7 +68,7 @@ class Devices(Eventful):
                                     
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
-            self.relearn_ports(db, event)
+            self.relearn_ports(db, event, log)
 
     def Forget(self, log, event):
         """
@@ -96,7 +96,7 @@ class Devices(Eventful):
         except KeyError:
             log.error("Could not find a Connection for desired Device.")
 
-    def relearn_ports(self, db, event):
+    def relearn_ports(self, db, event, log):
         """
         Throws either a port_up or port_down event to listening
         classes.

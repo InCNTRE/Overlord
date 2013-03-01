@@ -47,12 +47,14 @@ def launch():
     # Set all hosts to inactive
     for h in db.hosts.find():
         h['active'] = False
+        db.hosts.save(h)
         
     # POX Lib
     core.openflow.addListenerByName("ConnectionUp", _handleConnectionUp)
     core.openflow.addListenerByName("ConnectionDown", _handleConnectionDown)
     core.openflow.addListenerByName("PacketIn", _handlePacketIn)
-    
+    core.openflow.addListenerByName("PortStatus", _handlePortStatus)
+
     # Overlord Lib
     devices = oDev.Devices()
     hosts = oHos.Hosts()
@@ -113,11 +115,12 @@ def _handleConnectionDown(event):
     forwarding.Forget(event)
 
 def _handlePacketIn(event):
-    # Track Network Devices
-    devices.Learn(log, db, event)
     # Learn Network Device Links
     l = links.Learn(event)
     if not l is None:
         forwarding.add_link(l[0], l[1], l[2])
     # Track Hosts
     hosts.Learn(log, db, forwarding, links, event)
+
+def _handlePortStatus(event):
+    devices.Learn(log, db, event)

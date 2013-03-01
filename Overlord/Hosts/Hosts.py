@@ -77,13 +77,14 @@ class Hosts(object):
             # If the source mac is not known add a local (mac, group) entry,
             #  and push the known information to the database.
             self.known_hosts.append( (str(mac), "-1") )    
-            host = {"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac), "group_no": "-1"}
+            host = {"_parent": str(dpid), "port_no": str(port), "ip": str(ip), "mac": str(mac), "group_no": "-1", "active": True}
             db.hosts.save(host)
         else:
             host["_parent"] = str(dpid)
             host["port_no"] = str(port)
             host["ip"] = str(ip)
             host["mac"] = str(mac)
+            host["active"] = True
             db.hosts.save(host)
             
         if host not in self.known_hosts:
