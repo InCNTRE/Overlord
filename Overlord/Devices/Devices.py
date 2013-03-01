@@ -39,6 +39,13 @@ class Devices(Eventful):
             db.devices.save(d)
             log.info("Connected to switch: " + dpid)
 
+            # List all up ports as active.
+            for p in event.ofp.ports:
+                hosts = db.hosts.find({'port_no': str(p.port_no)})
+                for h in hosts:
+                    h['active'] = True
+                    db.hosts.save(h)
+
             # Delete any existing flows in the switch.
             msg = of.ofp_flow_mod()
             msg.command = of.OFPFC_DELETE
@@ -61,7 +68,7 @@ class Devices(Eventful):
                                     
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
-            self.relearn_ports(event)
+            self.relearn_ports(db, event)
 
     def Forget(self, log, event):
         """
@@ -89,7 +96,7 @@ class Devices(Eventful):
         except KeyError:
             log.error("Could not find a Connection for desired Device.")
 
-    def relearn_ports(self, event):
+    def relearn_ports(self, db, event):
         """
         Throws either a port_up or port_down event to listening
         classes.
@@ -98,6 +105,14 @@ class Devices(Eventful):
         e.dpid = event.dpid
         e.port = event.port
         if event.added:
+            hosts = db.hosts.find({'port_no': str(event.port)})
+            for h in hosts:
+                h['active'] = True
+                db.hosts.save(h)
             self.handle_event("port_up", e)
         elif event.deleted:
+            hosts = db.hosts.find({'port_no': str(event.port)})
+            for h in hosts:
+                h['active'] = False
+                db.hosts.save(h)
             self.handle_event("port_down", e)
