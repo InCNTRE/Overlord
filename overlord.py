@@ -34,6 +34,20 @@ def launch():
     global hosts
     global forwarding
 
+    # Connect to db
+    conn = Connection()
+    db = conn['overlord']
+
+    # Initialize Message Queue
+    if "messages" in db.collection_names():
+        db["messages"].drop()
+        db.create_collection("messages", size=100000, max=100, capped=True)
+        db.messages.insert({"message": "null"})
+
+    # Set all hosts to inactive
+    for h in db.hosts.find():
+        h['active'] = False
+        
     # POX Lib
     core.openflow.addListenerByName("ConnectionUp", _handleConnectionUp)
     core.openflow.addListenerByName("ConnectionDown", _handleConnectionDown)
@@ -46,16 +60,6 @@ def launch():
     forwarding = oFwd.Forwarding()
     forwarding.add_listener("new_flows", _handleNewFlows)
 
-    # Connect to db')
-    conn = Connection()
-    db = conn['overlord']
-
-    # Initialize Message Queue')
-    if "messages" in db.collection_names():
-        db["messages"].drop()
-        db.create_collection("messages", size=100000, max=100, capped=True)
-        db.messages.insert({"message": "null"})
-        
     # Overlord Events')
     oEvents = oMsg.OverlordMessage()
     oEvents.addListenerByName("WebCommand", _handleWebCommand)

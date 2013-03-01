@@ -105,14 +105,12 @@ class Devices(Eventful):
         e.dpid = event.dpid
         e.port = event.port
         if event.added:
-            hosts = db.hosts.find({'port_no': str(event.port)})
-            for h in hosts:
+            for h in db.hosts.find({'port_no': str(event.port)}):
                 h['active'] = True
                 db.hosts.save(h)
             self.handle_event("port_up", e)
         elif event.deleted:
-            hosts = db.hosts.find({'port_no': str(event.port)})
-            for h in hosts:
+            for h in db.hosts.find({'port_no': str(event.port)}):
                 h['active'] = False
                 db.hosts.save(h)
             self.handle_event("port_down", e)
