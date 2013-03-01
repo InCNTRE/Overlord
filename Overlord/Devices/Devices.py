@@ -105,6 +105,9 @@ class Devices(Eventful):
         e.dpid = event.dpid
         e.port = event.port
         if event.added:
+            # Maybe ARP should be the only reason to acknowledge
+            # a port_up. Else if you swap devices, they'll be
+            # stale until ARP.
             for h in db.hosts.find({'dpid': str(event.dpid), 'port_no': str(event.port)}):
                 h['active'] = True
                 db.hosts.save(h)
