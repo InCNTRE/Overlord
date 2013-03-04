@@ -61,6 +61,7 @@ def launch():
     links = oLnk.Links()
     forwarding = oFwd.Forwarding()
     forwarding.add_listener("new_flows", _handleNewFlows)
+    hosts.add_listener("host_moved", _handleHostMoved)
 
     # Overlord Events')
     oEvents = oMsg.OverlordMessage()
@@ -68,6 +69,16 @@ def launch():
     t = Thread(target=oEvents.run, args=(db,))
     t.setDaemon(True)
     t.start()
+
+def _handleHostMoved(event):
+    host = event.host
+    flows = forwarding.Disconnect(host)
+    switches = devices.AllConnections()
+    for f in flows:
+        for k in switches:
+            switches[k].send(f)
+    if host["group_no"] != "-1":
+        forwarding.Group(log, db, devices, links, host)
 
 def _handleNewFlows(event):
     for dpid in event.flows:
@@ -120,7 +131,7 @@ def _handlePacketIn(event):
     if not l is None:
         forwarding.add_link(l[0], l[1], l[2])
     # Track Hosts
-    hosts.Learn(log, db, forwarding, links, event)
+    hosts.Learn(log, db, forwarding, links, devices, event)
 
 def _handlePortStatus(event):
     devices.Learn(log, db, event)
