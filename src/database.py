@@ -12,53 +12,55 @@ class Database(object):
             conn = Connection()
             self.db = conn['overlord']
         # TODO: Add remote connection option.
-
         self.last_event = -1
 
     def find_device(self, search):
         """
         Returns a single Device based on the search dict.
         """
-        pass
+        return self.db.devices.find_one(search)
 
     def find_devices(self, search):
         """
         Returns an array of Devices based on the search dict.
         """
-        pass
+        return self.db.devices.find(search)
 
     def update_device(self, device):
         """
         Updates the entry found by device.dpid with the values found
         in device.
         """
-        pass
+        spec = {"dpid": device.dpid}
+        self.db.devices.update(spec, device)
 
     def find_event(self, search):
         """
         Finds the latest command added to the database.
         """
         try:
-            latest = self.db.messages.find({"_id": {"$gt": self.last_event}}).limit(1)
+            latest = self.db.messages.find_one({"_id": {"$gt": self.last_event}})
             self.last_event = latest["_id"]
         except KeyError:
-            print("no command found")
+            # No messages available
+            return None
 
     def find_host(self, search):
         """
         Returns a single Host based on the search dict.
         """
-        pass
+        return self.db.hosts.find_one(search)
 
     def find_hosts(self, search):
         """
         Returns an array of Hosts based on the search dict.
         """
-        pass
+        return self.db.hosts.find(search)
 
     def update_host(self, host):
         """
         Updates the entry found by host.mac with the values found
         in host.
         """
-        pass
+        spec = {"mac": host.mac}
+        self.db.hosts.update(spec, host)
