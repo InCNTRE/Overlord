@@ -95,8 +95,11 @@ class Forwarding(Eventful):
         @param host2
         @param path
         """
-        if path == None:
-            path = self.graph.get_path(host1["_parent"], host2["_parent"])
+        try:
+            if path == None:
+                path = self.graph.get_path(host1["_parent"], host2["_parent"])
+        except KeyError:
+            return {}
 
         self.connections[path.get_id()] = Connection(path.get_id(), host1, host2)
 

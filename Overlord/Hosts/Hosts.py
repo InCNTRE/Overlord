@@ -3,7 +3,6 @@ from pox.core import core
 from pox.lib.addresses import EthAddr, IPAddr
 from pox.lib.packet.arp import arp
 from ..Lib.Events import Event, Eventful
-# from pox.core import database
 
 import pox.openflow.libopenflow_01 as of
 
@@ -13,12 +12,12 @@ class Hosts(Eventful):
         self.hosts = {}
         self.add_event("host-update")
 
-    def learn(self, event):
+    def learn(self, devices, event):
         pkt = event.parse()
         if pkt.type != 2054: return
         arp = pkt.next
 
-        host_a = database.find_host("mac", arp.hwsrc)
+        host_a = core.db.find_host("mac", arp.hwsrc)
         if host_a is None or host_a.group is -1:
             h = {"_parent": event.dpid,
                  "port_no": event.port,
@@ -26,7 +25,7 @@ class Hosts(Eventful):
                  "mac": str(arp.hwsrc),
                  "group_no": -1, "active": True}
             self.hosts[str(arp.hwsrc)].update(h)
-            database.update_host(h)
+            core.db.update_host(h)
             return
         else:
             if not host_a.dpid is event.dpid or not host_a.port is event.port:
@@ -35,9 +34,9 @@ class Hosts(Eventful):
                 e.host = host_a
                 self.handle_event("host-update", e)
 
-            host_b = database.find_host("ip", arp.protodst)
+            host_b = core.db.find_host("ip", arp.protodst)
             if host_b is None or host_b.group is -1: return
-            self.send_arp(host_a, host_b)
+            self.send_arp(devices, host_a, host_b)
 
     def send_arp(self, host_a, host_b):
         # The ARP'n device src and dst exist and are in the same group

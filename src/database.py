@@ -38,8 +38,8 @@ class Database(object):
         Updates the entry found by device.dpid with the values found
         in device.
         """
-        spec = {"dpid": device.dpid}
-        self.db.devices.update(spec, device)
+        spec = {"dpid": device["dpid"]}
+        self.db.devices.update(spec, {"$set": device})
 
     def find_event(self, search):
         """
@@ -69,5 +69,5 @@ class Database(object):
         Updates the entry found by host.mac with the values found
         in host.
         """
-        spec = {"mac": host.mac}
-        self.db.hosts.update(spec, host)
+        spec = {"mac": host["mac"]}
+        self.db.hosts.update(spec, {"$set": host})

@@ -12,7 +12,7 @@ from Overlord.Links import Links as oLnk
 from Overlord.Hosts import Hosts as oHos
 from Overlord.Forwarding import Forwarding as oFwd
 from Overlord.Lib.Web import OverlordMessage as oMsg
-import src.database as dbo
+import src.database as dbi
 from pymongo import Connection
 
 import time
@@ -35,9 +35,10 @@ def launch():
     global hosts
     global forwarding
 
-    dbo = dbo.Database()
     # Connect to db
+    dbo = dbi.Database()
     db = dbo.get_connection()
+    core.register("db", dbo)
 
     # Initialize Message Queue
     if "messages" in db.collection_names():
@@ -93,9 +94,8 @@ def _handleWebCommand(event):
         if cmd[u"message"] == u"group":
             log.info("Got a Group Command")            
             try:
-                host = hosts.GetInfo(log, db, cmd[u"mac"])
-                host["group_no"] = str( cmd[u"group_no"] )
-                db.hosts.save(host)
+                host = {"mac":str(cmd[u"mac"]),"group_no": str(cmd[u"group_no"])}
+                core.db.update_host(host)
 
                 flows = forwarding.Disconnect(host)
                 switches = devices.AllConnections()
@@ -132,7 +132,7 @@ def _handlePacketIn(event):
     if not l is None:
         forwarding.add_link(l[0], l[1], l[2])
     # Track Hosts
-    hosts.Learn(log, db, forwarding, links, devices, event)
+    hosts.learn(devices, event)
 
 def _handlePortStatus(event):
     devices.Learn(log, db, event)
