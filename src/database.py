@@ -12,6 +12,10 @@ class Database(object):
             conn = Connection()
             self.db = conn['overlord']
         # TODO: Add remote connection option.
+
+        if "messages" in self.db.collection_names(): self.db["messages"].drop()
+        self.db.create_collection("messages", size=100000, max=100, capped=True)
+        self.db.messages.insert({"message": "null"})
         self.last_event = -1
 
     def find_device(self, search):

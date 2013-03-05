@@ -12,6 +12,7 @@ from Overlord.Links import Links as oLnk
 from Overlord.Hosts import Hosts as oHos
 from Overlord.Forwarding import Forwarding as oFwd
 from Overlord.Lib.Web import OverlordMessage as oMsg
+import src.database as dbo
 from pymongo import Connection
 
 import time
@@ -33,6 +34,8 @@ def launch():
     global links
     global hosts
     global forwarding
+
+    dbo = dbo.Database()
 
     # Connect to db
     conn = Connection()
