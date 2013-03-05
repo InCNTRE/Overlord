@@ -13,6 +13,8 @@ class Database(object):
             self.db = conn['overlord']
         # TODO: Add remote connection option.
 
+        self.last_event = -1
+
     def find_device(self, search):
         """
         Returns a single Device based on the search dict.
@@ -36,7 +38,11 @@ class Database(object):
         """
         Finds the latest command added to the database.
         """
-        pass
+        try:
+            latest = self.db.messages.find({"_id": {"$gt": self.last_event}}).limit(1)
+            self.last_event = latest["_id"]
+        except KeyError:
+            print("no command found")
 
     def find_host(self, search):
         """
