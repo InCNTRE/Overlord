@@ -18,6 +18,9 @@ class Database(object):
         self.db.messages.insert({"message": "null"})
         self.last_event = -1
 
+    def get_connection(self):
+        return self.db
+
     def find_device(self, search):
         """
         Returns a single Device based on the search dict.

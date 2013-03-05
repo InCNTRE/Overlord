@@ -36,10 +36,8 @@ def launch():
     global forwarding
 
     dbo = dbo.Database()
-
     # Connect to db
-    conn = Connection()
-    db = conn['overlord']
+    db = dbo.get_connection()
 
     # Initialize Message Queue
     if "messages" in db.collection_names():
