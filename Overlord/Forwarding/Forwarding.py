@@ -197,11 +197,11 @@ class Forwarding(Eventful):
             flows_to_install[dpid] = [fmod1, fmod2]
         return flows_to_install
 
-    def Group(self, log, db, devices, links, host):
+    def Group(self, log, devices, links, host):
         """
         Builds connections between host and all of his group members.
         """
-        group_members = db.hosts.find({"group_no": host["group_no"]})
+        group_members = core.db.find_hosts({"group_no": host["group_no"]})
         for h in group_members:
             flows = self.Connect(host, h)
             if flows != None:

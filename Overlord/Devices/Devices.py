@@ -4,6 +4,7 @@
 # Usage
 # from Overlord.Devices import Devices as oDev
 # devices = oDev.Devices()
+from pox.core import core
 from ..Lib.Events import Event, Eventful
 
 import pox.openflow.libopenflow_01 as of
@@ -20,7 +21,7 @@ class Devices(Eventful):
         self.add_event("port_down")
 
     # Register fwding with core so no need to pass fwding and links
-    def Learn(self, log, db, event, fwding=None, lnks=None):
+    def Learn(self, log, event, fwding=None, lnks=None):
         """
         Learn dpid and ports
         """
@@ -32,19 +33,19 @@ class Devices(Eventful):
             """
             dpid = str(event.dpid)
             self.switches[dpid] = event.connection
-            d = db.devices.find_one({'dpid': dpid})
+            d = core.db.find_device({'dpid': dpid})
             if d is None:
                 d = {}
             d["dpid"] = dpid
-            db.devices.save(d)
+            core.db.update_device(d)
             log.info("Connected to switch: " + dpid)
 
             # List all up ports as active.
             for p in event.ofp.ports:
-                hosts = db.hosts.find({'port_no': str(p.port_no)})
+                hosts = core.db.find_hosts({'port_no': str(p.port_no)})
                 for h in hosts:
                     h['active'] = True
-                    db.hosts.save(h)
+                    core.db.update_host(h)
 
             # Delete any existing flows in the switch.
             msg = of.ofp_flow_mod()
@@ -61,14 +62,14 @@ class Devices(Eventful):
             # Attempt to group all hosts connected to dpid
             if fwding != None and lnks != None:
                 log.info("Building host links in line with database.")
-                hosts = db.hosts.find({'_parent': dpid})
+                hosts = core.db.find_hosts({'_parent': dpid})
                 for h in hosts:
                     if h['group_no'] != '-1':
-                        fwding.Group(log, db, self, lnks, h)
+                        fwding.Group(log, self, lnks, h)
                                     
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
-            self.relearn_ports(db, event, log)
+            self.relearn_ports(event, log)
 
     def Forget(self, log, event):
         """
@@ -96,7 +97,7 @@ class Devices(Eventful):
         except KeyError:
             log.error("Could not find a Connection for desired Device.")
 
-    def relearn_ports(self, db, event, log):
+    def relearn_ports(self, event, log):
         """
         Throws either a port_up or port_down event to listening
         classes.
@@ -108,12 +109,12 @@ class Devices(Eventful):
             # Maybe ARP should be the only reason to acknowledge
             # a port_up. Else if you swap devices, they'll be
             # stale until ARP.
-            for h in db.hosts.find({'dpid': str(event.dpid), 'port_no': str(event.port)}):
+            for h in core.db.find_hosts({'dpid': str(event.dpid), 'port_no': str(event.port)}):
                 h['active'] = True
-                db.hosts.save(h)
+                core.db.update_host(h)
             self.handle_event("port_up", e)
         elif event.deleted:
-            for h in db.hosts.find({'dpid': str(event.dpid), 'port_no': str(event.port)}):
+            for h in core.db.find_hosts({'dpid': str(event.dpid), 'port_no': str(event.port)}):
                 h['active'] = False
-                db.hosts.save(h)
+                core.db.update_host(h)
             self.handle_event("port_down", e)

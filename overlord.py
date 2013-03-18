@@ -104,7 +104,7 @@ def _handleWebCommand(event):
                         switches[k].send(f)
 
                 if host["group_no"] != "-1":
-                    forwarding.Group(log, db, devices, links, host)
+                    forwarding.Group(log, devices, links, host)
             except LookupError:
                 log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
@@ -119,7 +119,7 @@ def _handleWebCommand(event):
 
 def _handleConnectionUp(event):
     forwarding.Learn(event)
-    devices.Learn(log, db, event, fwding=forwarding, lnks=links)
+    devices.Learn(log, event, fwding=forwarding, lnks=links)
     links.Learn(event)
 
 def _handleConnectionDown(event):
