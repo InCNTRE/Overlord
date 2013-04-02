@@ -12,7 +12,7 @@ from Overlord.Links import Links as oLnk
 from Overlord.Hosts import Hosts as oHos
 from Overlord.Forwarding import Forwarding as oFwd
 from Overlord.Lib.Web import OverlordMessage as oMsg
-import src.database as db
+from src.database import *
 
 import time
 from threading import Thread
@@ -34,11 +34,11 @@ def launch():
     global forwarding
 
     # Connect to db
-    tmp_db = db.Database()
+    tmp_db = Database()
     core.register("db", tmp_db)
 
     # Set all hosts to inactive
-    for h in core.db.find_hosts():
+    for h in core.db.find_hosts({}):
         h['active'] = False
         core.db.update_host(h)
         
@@ -50,6 +50,7 @@ def launch():
 
     # Overlord Lib
     devices = oDev.Devices()
+    core.devices = devices
     hosts = oHos.Hosts()
     links = oLnk.Links()
     forwarding = oFwd.Forwarding()
@@ -59,7 +60,7 @@ def launch():
     # Overlord Events')
     oEvents = oMsg.OverlordMessage()
     oEvents.addListenerByName("WebCommand", _handleWebCommand)
-    t = Thread(target=oEvents.run, args=(db,))
+    t = Thread(target=oEvents.run)
     t.setDaemon(True)
     t.start()
 

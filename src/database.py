@@ -71,5 +71,9 @@ class Database(object):
         in host.
         """
         spec = {"mac": host["mac"]}
-        print("Updating Host %s" % str(host["mac"]))
-        self.db.hosts.update(spec, host)
+        if self.find_host(spec) != None:
+            print("Updating Host %s" % str(host["mac"]))
+            self.db.hosts.update(spec, {"$set": host})
+        else:
+            self.db.hosts.insert(host)
+        

@@ -2,6 +2,7 @@
 OverlordMessage.py
 Event and Event Raising Classes from the web front-end.
 """
+from pox.core import core
 import time
 from pox.lib.revent.revent import EventMixin, Event
 
@@ -27,7 +28,7 @@ class OverlordMessage(EventMixin):
     def __init__(self):
         EventMixin.__init__(self)
 
-    def run(self, db):
+    def run(self):
         """
         Not the best way to get events from the web front-end.
         I'd prefer using something like redis in the future.
@@ -35,7 +36,7 @@ class OverlordMessage(EventMixin):
         the next iteration to save on search time. If the
         collection is empty sleep.
         """
-        latest = db.messages.find({}, await_data=True, tailable=True).sort("$natural", 1).limit(1)
+        latest = core.db.get_connection().messages.find({}, await_data=True, tailable=True).sort("$natural", 1).limit(1)
         
         try:
             last = None
@@ -48,6 +49,6 @@ class OverlordMessage(EventMixin):
                 except StopIteration:
                     time.sleep(3)
                 finally:
-                    latest = db.messages.find({"_id": {"$gt": last}}).limit(1)
+                    latest = core.db.get_connection().messages.find({"_id": {"$gt": last}}).limit(1)
         except KeyboardInterrupt:
             print "ctrl-c was pressed"
