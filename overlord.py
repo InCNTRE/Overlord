@@ -12,8 +12,7 @@ from Overlord.Links import Links as oLnk
 from Overlord.Hosts import Hosts as oHos
 from Overlord.Forwarding import Forwarding as oFwd
 from Overlord.Lib.Web import OverlordMessage as oMsg
-import src.database as dbi
-from pymongo import Connection
+import src.database as db
 
 import time
 from threading import Thread
@@ -29,27 +28,19 @@ forwarding = None
 
 def launch():
     # Define modules as global for assignment
-    global db
     global devices
     global links
     global hosts
     global forwarding
 
     # Connect to db
-    dbo = dbi.Database()
-    db = dbo.get_connection()
-    core.register("db", dbo)
-
-    # Initialize Message Queue
-    if "messages" in db.collection_names():
-        db["messages"].drop()
-        db.create_collection("messages", size=100000, max=100, capped=True)
-        db.messages.insert({"message": "null"})
+    tmp_db = db.Database()
+    core.register("db", tmp_db)
 
     # Set all hosts to inactive
-    for h in db.hosts.find():
+    for h in core.db.find_hosts():
         h['active'] = False
-        db.hosts.save(h)
+        core.db.update_host(h)
         
     # POX Lib
     core.openflow.addListenerByName("ConnectionUp", _handleConnectionUp)
@@ -80,7 +71,7 @@ def _handleHostMoved(event):
         for k in switches:
             switches[k].send(f)
     if host["group_no"] != "-1":
-        forwarding.Group(log, db, devices, links, host)
+        forwarding.Group(log, devices, links, host)
 
 def _handleNewFlows(event):
     for dpid in event.flows:
@@ -135,4 +126,4 @@ def _handlePacketIn(event):
     hosts.learn(devices, event)
 
 def _handlePortStatus(event):
-    devices.Learn(log, db, event)
+    devices.Learn(log, event)

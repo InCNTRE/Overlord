@@ -13,18 +13,68 @@ class Hosts(Eventful):
         self.add_event("host-update")
 
     def learn(self, devices, event):
+        """
+        Intercept and inspect ARP messages.
+        """
         pkt = event.parse()
         if pkt.type != 2054: return
         arp = pkt.next
 
-        host_a = core.db.find_host("mac", arp.hwsrc)
+        host_a = core.db.find_host({"mac": str(arp.hwsrc)})
+        print("Learning about Host %s via ARP" % str(arp.hwsrc))
+
+        h = {"_parent": str(event.dpid),
+             "port_no": str(event.port),
+             "ip": str(arp.protosrc),
+             "mac": str(arp.hwsrc),
+             "group_no": "-1", "active": True}
+        
+        if host_a is None:
+            print("Host %s is new. Recording and adding to null group" % str(arp.hwsrc))
+            self.hosts[str(arp.hwsrc)] = h
+            core.db.update_host(h)
+            return
+
+        if not str(arp.hwsrc) in self.hosts:
+            print("Host %s is new to local db. Syncing with remote db." % str(arp.hwsrc))
+            h["group_no"] = host_a["group_no"]
+            self.hosts[str(arp.hwsrc)] = h
+            core.db.update_host(h)
+            e = Event()
+            e.host = host_a
+            self.handle_event("host-update", e)
+
+        print("Checking known host %s for state changes." % str(arp.hwsrc))
+        if host_a["group_no"] != h["group_no"] or host_a["ip"] != h["ip"] \
+                or host_a["port_no"] != h["port_no"] or host_a["_parent"] != h["_parent"] \
+                or host_a["active"] != h["active"]:
+            print("Saving host %s changes to db and installing new flows." % str(arp.hwsrc))
+            self.hosts[str(arp.hwsrc)] = h
+            core.db.update_host(h)
+            e = Event()
+            e.host = host_a
+            self.handle_event("host-update", e)
+        
+        if host_a.group is "-1":
+            print("Not broadcasting ARP from Host %s" % str(arp.hwsrc))
+            return
+        else:
+            host_b = core.db.find_host({"ip": str(arp.protodst)})
+            if host_b is None or host_b.group is -1: return
+            #self.send_arp(devices, host_a, host_b)
+            self.send_arp(host_a, host_b)
+            
+        """
         if host_a is None or host_a.group is -1:
             h = {"_parent": event.dpid,
                  "port_no": event.port,
                  "ip": str(arp.protosrc),
                  "mac": str(arp.hwsrc),
                  "group_no": -1, "active": True}
-            self.hosts[str(arp.hwsrc)].update(h)
+            try:
+                self.hosts[str(arp.hwsrc)].update(h)
+            except KeyError:
+                self.hosts[str(arp.hwsrc)] = h
             core.db.update_host(h)
             return
         else:
@@ -34,9 +84,9 @@ class Hosts(Eventful):
                 e.host = host_a
                 self.handle_event("host-update", e)
 
-            host_b = core.db.find_host("ip", arp.protodst)
+            host_b = core.db.find_host({"ip": str(arp.protodst)})
             if host_b is None or host_b.group is -1: return
-            self.send_arp(devices, host_a, host_b)
+            self.send_arp(devices, host_a, host_b)"""
 
     def send_arp(self, host_a, host_b):
         # The ARP'n device src and dst exist and are in the same group

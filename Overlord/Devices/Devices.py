@@ -33,7 +33,7 @@ class Devices(Eventful):
             """
             dpid = str(event.dpid)
             self.switches[dpid] = event.connection
-            d = core.db.find_device({'dpid': dpid})
+            d = core.db.find_device({'dpid': str(dpid)})
             if d is None:
                 d = {}
             d["dpid"] = dpid
@@ -62,7 +62,7 @@ class Devices(Eventful):
             # Attempt to group all hosts connected to dpid
             if fwding != None and lnks != None:
                 log.info("Building host links in line with database.")
-                hosts = core.db.find_hosts({'_parent': dpid})
+                hosts = core.db.find_hosts({'_parent': str(dpid)})
                 for h in hosts:
                     if h['group_no'] != '-1':
                         fwding.Group(log, self, lnks, h)

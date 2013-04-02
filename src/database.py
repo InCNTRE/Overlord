@@ -13,11 +13,12 @@ class Database(object):
             self.db = conn['overlord']
         # TODO: Add remote connection option.
 
-        if "messages" in self.db.collection_names(): self.db["messages"].drop()
-        self.db.create_collection("messages", size=100000, max=100, capped=True)
-        self.db.messages.insert({"message": "null"})
-        self.last_event = -1
-
+        if "messages" in self.db.collection_names():
+            self.db["messages"].drop()
+            self.db.create_collection("messages", size=100000, max=100, capped=True)
+            self.db.messages.insert({"message": "null"})
+            self.last_event = -1
+        
     def get_connection(self):
         return self.db
 
@@ -70,4 +71,5 @@ class Database(object):
         in host.
         """
         spec = {"mac": host["mac"]}
-        self.db.hosts.update(spec, {"$set": host})
+        print("Updating Host %s" % str(host["mac"]))
+        self.db.hosts.update(spec, host)
