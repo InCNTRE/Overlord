@@ -84,9 +84,10 @@ def _handleWebCommand(event):
     cmd = event.Command()
     try:
         if cmd[u"message"] == u"group":
-            log.info("Got a Group Command")            
+            print("Got a Group Command")            
             try:
-                host = {"mac":str(cmd[u"mac"]),"group_no": str(cmd[u"group_no"])}
+                host = core.db.find_host({"mac":str(cmd[u"mac"])})
+                host["group_no"] = str(cmd[u"group_no"])
                 core.db.update_host(host)
 
                 flows = forwarding.Disconnect(host)
