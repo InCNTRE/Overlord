@@ -97,13 +97,10 @@ class Forwarding(Eventful):
         """
         try:
             if path == None:
-                print(str(host1))
-                print(str(host2))
                 path = self.graph.get_path(str(host1[u"_parent"]), str(host2[u"_parent"]))
         except KeyError:
             print("KeyError")
             return {}
-        print("Path is: {}".format(path.get_nodes()))
 
         self.connections[path.get_id()] = Connection(path.get_id(), host1, host2)
 
@@ -210,7 +207,6 @@ class Forwarding(Eventful):
             flows = self.Connect(host, h)
             if flows != None:
                 print("Grouping host: {}".format(h["mac"]))
-                print(flows)
                 for k in flows:
                     for f in flows[k]:
                         devices.Connection(log, k).send(f)

@@ -77,3 +77,26 @@ class Database(object):
         else:
             self.db.hosts.insert(host)
         
+    def find_patch(self, search):
+        """
+        Returns a single Patch based on the search dict.
+        """
+        return self.db.patches.find_one(search)
+
+    def find_patches(self, search):
+        """
+        Returns an array of Patches based on the search dict.
+        """
+        return self.db.hosts.find(search)
+
+    def update_patch(self, patch):
+        """
+        Updates the entry found by host.mac with the values found
+        in host.
+        """
+        spec = {u'patch_id': patch['patch_id']}
+        if self.find_patch(spec) != None:
+            print("Updating Patch %s" % str(host['patch_id']))
+            self.db.patches.update(spec, {"$set": patch})
+        else:
+            self.db.patches.insert(patch)

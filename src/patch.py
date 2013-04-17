@@ -6,6 +6,11 @@ class PatchPanel(object):
         self.patches = {}
 
     def handle_web_command(self, cmd):
+        """
+        { u'add_patch': { u'dpid': n, u'port_a': n, u'port_b': n }}
+        { u'delete_patch': { u'patch_id': n }}
+        { u'modify_patch': { u'patch_id': n, u'port_a': n, u'port_b': n }}
+        """
         if u'add_patch' in cmd:
             add_cmd = cmd[u'add_patch']
             self.add_patch(add_cmd['dpid'], add_cmd['port_a'], add_cmd['port_b'])
@@ -17,7 +22,7 @@ class PatchPanel(object):
             self.modify_patch(mod_cmd['patch_id'], mod_cmd['cmd'])
         else:
             # Unknown or unsupported command
-            return
+            pass
 
     def add_patch(self, dpid, port_a, port_b):
         patch_id = _id.next()
@@ -25,34 +30,25 @@ class PatchPanel(object):
         flows = virtual_patch.flow_add()
         #TODO::Install flows
         self.patches[patch_id] = virtual_patch
-        core.db.save_patch(virtual_patch.get_json())
+        #core.db.save_patch(virtual_patch.get_json())
 
     def delete_patch(self, patch_id):
         virtual_patch = self.patches[int(patch_id)]
         flows = virtual_patch.flow_delete()
         #TODO::Install flows
         del(self.patches[int(patch_id)])
-        core.db.delete_patch(patch.get_json())
+        #core.db.delete_patch(patch.get_json())
 
     def modify_patch(self, patch_id, cmd):
-        """
-        Command in format...
-        { u'move_port_a' : u'X' } or { u'move_port_b' : u'X'}
-        """
         virtual_patch = self.patches[patch_id]
+        #TODO::Install flows
         flows = virtual_patch.flow_delete()
-        #TODO::Install flows
-        if u'move_port_a' in cmd:
-            virtual_patch.port_a = int(cmd[u'move_port_a'])
-        if u'move_port_b' in cmd:
-            virtual_patch.port_b = int(cmd[u'move_port_b'])
-        else:
-            # Unknown or unsupported command
-            return
 
-        flows = virtual_patch.flow_add()
+        virtual_patch.port_a = int(cmd[u'port_a'])
+        virtual_patch.port_b = int(cmd[u'port_b'])
         #TODO::Install flows
-        core.db.update_patch(virtual_patch.get_json())
+        flows = virtual_patch.flow_add()
+        #core.db.update_patch(virtual_patch.get_json())
 
 class Patch(object):
     def __init__(self, dpid, port_a, port_b):
