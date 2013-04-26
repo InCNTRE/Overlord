@@ -1,7 +1,7 @@
 # @org InCNTRE 2013
 # @author Jonathan Stout
 
-from ...Overlord.Lib.Events import Event, Eventful
+from ..util.events import Event, Eventful
 
 class Path(Eventful):
     def __init__(self, start, end, path):

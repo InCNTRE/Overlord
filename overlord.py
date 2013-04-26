@@ -1,15 +1,14 @@
 """
 Overlord - InCNTRE 2013
 """
-
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
+from src.database import Database
 from src.devices import Devices
+from src.forwarding import Forwarding
 from src.hosts import Hosts
 from src.links import Links
-from src.forwarding import Forwarding
-from Overlord.Lib.Web import OverlordMessage as oMsg
-from src.database import *
+from src.util.web import WebMessage
 
 import time
 from threading import Thread
@@ -43,9 +42,9 @@ def launch():
     core.hosts.add_listener("host_moved", _handleHostMoved)
 
     # Overlord Events
-    oEvents = oMsg.OverlordMessage()
-    oEvents.addListenerByName("WebCommand", _handleWebCommand)
-    t = Thread(target=oEvents.run)
+    web_events = WebMessage()
+    web_events.addListenerByName("WebCommand", _handleWebCommand)
+    t = Thread(target=web_events.run)
     t.setDaemon(True)
     t.start()
 
@@ -64,7 +63,7 @@ def _handleNewFlows(event):
         for f in event.flows[dpid]:
             core.devices.Connection(log, dpid).send(f)
 
-# This could probably be cleaned up a bit. Maybe push it down into forwarding.Group.
+# TODO::Push down into forwarding.group.
 def _handleWebCommand(event):
     cmd = event.Command()
     try:

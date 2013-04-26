@@ -18,7 +18,7 @@ class WebCommand(Event):
     def Command(self):
         return self.command
 
-class OverlordMessage(EventMixin):
+class WebMessage(EventMixin):
     """
     EventMixin class for raising custom events to the
     overlord classes.

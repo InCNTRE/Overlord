@@ -1,11 +1,5 @@
-# Overlord.Devices
-# Jonathan M. Stout 2012
-#
-# Usage
-# from Overlord.Devices import Devices as oDev
-# devices = oDev.Devices()
 from pox.core import core
-from ..Overlord.Lib.Events import Event, Eventful
+from util.events import Event, Eventful
 
 import pox.openflow.libopenflow_01 as of
 

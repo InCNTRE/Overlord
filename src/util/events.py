@@ -1,5 +1,3 @@
-# @author Jonathan Stout
-
 class Event(object):
     pass
 

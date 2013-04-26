@@ -3,7 +3,7 @@
 
 from path import *
 from solution import dijkstra
-from ...Overlord.Lib.Events import Event, Eventful
+from ..util.events import Event, Eventful
 
 class Graph(Eventful):
     def __init__(self):

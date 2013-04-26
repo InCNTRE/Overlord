@@ -1,4 +1,3 @@
-# @org InCNTRE 2013
 # @author Jonathan Stout
 
 def dict_sort(i):

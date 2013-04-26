@@ -6,7 +6,7 @@ import pox.openflow.libopenflow_01 as of
 from graph import *
 from path import *
 from solution import dijkstra
-from ...Overlord.Lib.Events import Event, Eventful
+from ..util.events import Event, Eventful
 
 class Forwarding(Eventful):
     """Create Forwarding rules for Host to Host communication"""

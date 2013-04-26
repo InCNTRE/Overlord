@@ -2,7 +2,7 @@ from pox.core import core
 from pox.lib.addresses import EthAddr, IPAddr
 from pox.lib.packet.ethernet import ethernet
 from pox.lib.packet.arp import arp
-from ..Overlord.Lib.Events import Event, Eventful
+from util.events import Event, Eventful
 
 import pox.openflow.libopenflow_01 as of
 
