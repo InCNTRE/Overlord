@@ -197,7 +197,7 @@ class Forwarding(Eventful):
             flows_to_install[dpid] = [fmod1, fmod2]
         return flows_to_install
 
-    def Group(self, log, devices, links, host):
+    def Group(self, log, host):
         """
         Builds connections between host and all of his group members.
         """
@@ -208,7 +208,7 @@ class Forwarding(Eventful):
                 print("Grouping host: {}".format(h["mac"]))
                 for k in flows:
                     for f in flows[k]:
-                        devices.Connection(log, k).send(f)
+                        core.devices.Connection(log, k).send(f)
 
 class Connection(object):
     def __init__(self, path_id, host1, host2):

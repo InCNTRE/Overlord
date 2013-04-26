@@ -20,7 +20,7 @@ class Devices(Eventful):
         self.add_event("port_up")
         self.add_event("port_down")
 
-    def Learn(self, log, event, lnks=None):
+    def Learn(self, log, event):
         """
         Learn dpid and ports
         """
@@ -59,12 +59,11 @@ class Devices(Eventful):
             event.connection.send(msg)
 
             # Attempt to group all hosts connected to dpid
-            if lnks != None:
-                log.info("Building host links in line with database.")
-                hosts = core.db.find_hosts({'_parent': str(dpid)})
-                for h in hosts:
-                    if h['group_no'] != '-1':
-                        core.forwarding.Group(log, self, lnks, h)
+            log.info("Building host links in line with database.")
+            hosts = core.db.find_hosts({'_parent': str(dpid)})
+            for h in hosts:
+                if h['group_no'] != '-1':
+                    core.forwarding.Group(log, h)
                                     
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
@@ -94,7 +93,6 @@ class Devices(Eventful):
         try:
             return self.switches[str(dpid)]
         except KeyError:
-            #log.error("Could not find a Connection for desired Device.")
             print("Could not find connection object")
 
     def relearn_ports(self, event, log):

@@ -15,14 +15,10 @@ import time
 from threading import Thread
 
 log = core.getLogger()
-links = None
 
 ######################################################
 
 def launch():
-    # Define modules as global for assignment
-    global links
-
     # Connect to db
     tmp_db = Database()
     core.register("db", tmp_db)
@@ -41,13 +37,12 @@ def launch():
     # Overlord Lib
     core.devices = oDev.Devices()
     core.hosts = oHos.Hosts()
-    links = oLnk.Links()
-    
+    core.links = oLnk.Links()    
     core.forwarding = oFwd.Forwarding()
     core.forwarding.add_listener("new_flows", _handleNewFlows)
     core.hosts.add_listener("host_moved", _handleHostMoved)
 
-    # Overlord Events')
+    # Overlord Events
     oEvents = oMsg.OverlordMessage()
     oEvents.addListenerByName("WebCommand", _handleWebCommand)
     t = Thread(target=oEvents.run)
@@ -62,7 +57,7 @@ def _handleHostMoved(event):
         for k in switches:
             switches[k].send(f)
     if host["group_no"] != "-1":
-        core.forwarding.Group(log, core.devices, links, host)
+        core.forwarding.Group(log, host)
 
 def _handleNewFlows(event):
     for dpid in event.flows:
@@ -87,7 +82,7 @@ def _handleWebCommand(event):
                         switches[k].send(f)
 
                 if host["group_no"] != "-1":
-                    core.forwarding.Group(log, core.devices, links, host)
+                    core.forwarding.Group(log, host)
             except LookupError:
                 log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
@@ -102,8 +97,8 @@ def _handleWebCommand(event):
 
 def _handleConnectionUp(event):
     core.forwarding.Learn(event)
-    core.devices.Learn(log, event, lnks=links)
-    links.Learn(event)
+    core.devices.Learn(log, event)
+    core.links.Learn(event)
 
 def _handleConnectionDown(event):
     core.devices.Forget(log, event)
@@ -111,7 +106,7 @@ def _handleConnectionDown(event):
 
 def _handlePacketIn(event):
     # Learn Network Device Links
-    l = links.Learn(event)
+    l = core.links.Learn(event)
     if not l is None:
         core.forwarding.add_link(l[0], l[1], l[2])
     # Track Hosts
