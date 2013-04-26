@@ -13,7 +13,7 @@ class Hosts(Eventful):
         self.hosts = {}
         self.add_event("host-update")
 
-    def learn(self, devices, event):
+    def learn(self, event):
         """
         Intercept and inspect ARP messages.
         """
@@ -59,32 +59,7 @@ class Hosts(Eventful):
         else:
             host_b = core.db.find_host({"ip": str(arp.protodst)})
             if host_b is None or host_b["group_no"] is -1: return
-            #self.send_arp(devices, host_a, host_b)
             self.send_arp(host_a, host_b)
-            
-        """
-        if host_a is None or host_a.group is -1:
-            h = {"_parent": event.dpid,
-                 "port_no": event.port,
-                 "ip": str(arp.protosrc),
-                 "mac": str(arp.hwsrc),
-                 "group_no": -1, "active": True}
-            try:
-                self.hosts[str(arp.hwsrc)].update(h)
-            except KeyError:
-                self.hosts[str(arp.hwsrc)] = h
-            core.db.update_host(h)
-            return
-        else:
-            if not host_a.dpid is event.dpid or not host_a.port is event.port:
-                # Host migrated to new location
-                e = Event()
-                e.host = host_a
-                self.handle_event("host-update", e)
-
-            host_b = core.db.find_host({"ip": str(arp.protodst)})
-            if host_b is None or host_b.group is -1: return
-            self.send_arp(devices, host_a, host_b)"""
 
     def send_arp(self, host_a, host_b):
         # The ARP'n device src and dst exist and are in the same group

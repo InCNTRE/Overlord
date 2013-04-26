@@ -60,8 +60,3 @@ class Links(object):
         #print("LINK_MSG FROM {} port {} Origin {}".format(str(event.dpid), str(event.port), self.mac_map[pkt.src.toInt()]))
 
         return (str(event.dpid), str(event.port), self.mac_map[pkt.src.toInt()])
-
-    def MakeLLDP(self):
-        """Creates an LLDP packet to be sent via packet out
-        whenever a new Network Device is discovered"""
-        pass

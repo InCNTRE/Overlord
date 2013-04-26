@@ -1,8 +1,5 @@
 """
-Overlord
-
-An Openflow control plane solution.
-1. Group devices via layer2 rules
+Overlord - InCNTRE 2013
 """
 
 from pox.core import core
@@ -19,7 +16,6 @@ from threading import Thread
 
 log = core.getLogger()
 db = None
-devices = None
 links = None
 hosts = None
 forwarding = None
@@ -28,7 +24,6 @@ forwarding = None
 
 def launch():
     # Define modules as global for assignment
-    global devices
     global links
     global hosts
     global forwarding
@@ -49,8 +44,7 @@ def launch():
     core.openflow.addListenerByName("PortStatus", _handlePortStatus)
 
     # Overlord Lib
-    devices = oDev.Devices()
-    core.devices = devices
+    core.devices = oDev.Devices()
     hosts = oHos.Hosts()
     links = oLnk.Links()
     forwarding = oFwd.Forwarding()
@@ -67,17 +61,17 @@ def launch():
 def _handleHostMoved(event):
     host = event.host
     flows = forwarding.Disconnect(host)
-    switches = devices.AllConnections()
+    switches = core.devices.AllConnections()
     for f in flows:
         for k in switches:
             switches[k].send(f)
     if host["group_no"] != "-1":
-        forwarding.Group(log, devices, links, host)
+        forwarding.Group(log, core.devices, links, host)
 
 def _handleNewFlows(event):
     for dpid in event.flows:
         for f in event.flows[dpid]:
-            devices.Connection(log, dpid).send(f)
+            core.devices.Connection(log, dpid).send(f)
 
 # This could probably be cleaned up a bit. Maybe push it down into forwarding.Group.
 def _handleWebCommand(event):
@@ -91,13 +85,13 @@ def _handleWebCommand(event):
                 core.db.update_host(host)
 
                 flows = forwarding.Disconnect(host)
-                switches = devices.AllConnections()
+                switches = core.devices.AllConnections()
                 for f in flows:
                     for k in switches:
                         switches[k].send(f)
 
                 if host["group_no"] != "-1":
-                    forwarding.Group(log, devices, links, host)
+                    forwarding.Group(log, core.devices, links, host)
             except LookupError:
                 log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
@@ -112,11 +106,11 @@ def _handleWebCommand(event):
 
 def _handleConnectionUp(event):
     forwarding.Learn(event)
-    devices.Learn(log, event, fwding=forwarding, lnks=links)
+    core.devices.Learn(log, event, fwding=forwarding, lnks=links)
     links.Learn(event)
 
 def _handleConnectionDown(event):
-    devices.Forget(log, event)
+    core.devices.Forget(log, event)
     forwarding.Forget(event)
 
 def _handlePacketIn(event):
@@ -125,7 +119,7 @@ def _handlePacketIn(event):
     if not l is None:
         forwarding.add_link(l[0], l[1], l[2])
     # Track Hosts
-    hosts.learn(devices, event)
+    hosts.learn(event)
 
 def _handlePortStatus(event):
-    devices.Learn(log, event)
+    core.devices.Learn(log, event)
