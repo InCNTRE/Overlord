@@ -4,9 +4,9 @@ Overlord - InCNTRE 2013
 
 from pox.core import core
 import pox.openflow.libopenflow_01 as of
-from Overlord.Devices import Devices as oDev
+from src.devices import Devices
+from src.hosts import Hosts
 from Overlord.Links import Links as oLnk
-from Overlord.Hosts import Hosts as oHos
 from Overlord.Forwarding import Forwarding as oFwd
 from Overlord.Lib.Web import OverlordMessage as oMsg
 from src.database import *
@@ -35,8 +35,8 @@ def launch():
     core.openflow.addListenerByName("PortStatus", _handlePortStatus)
 
     # Overlord Lib
-    core.devices = oDev.Devices()
-    core.hosts = oHos.Hosts()
+    core.devices = Devices()
+    core.hosts = Hosts()
     core.links = oLnk.Links()    
     core.forwarding = oFwd.Forwarding()
     core.forwarding.add_listener("new_flows", _handleNewFlows)

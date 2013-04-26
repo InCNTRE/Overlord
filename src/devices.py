@@ -5,7 +5,7 @@
 # from Overlord.Devices import Devices as oDev
 # devices = oDev.Devices()
 from pox.core import core
-from ..Lib.Events import Event, Eventful
+from ..Overlord.Lib.Events import Event, Eventful
 
 import pox.openflow.libopenflow_01 as of
 
