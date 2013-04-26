@@ -15,10 +15,8 @@ import time
 from threading import Thread
 
 log = core.getLogger()
-db = None
 links = None
 hosts = None
-forwarding = None
 
 ######################################################
 
@@ -26,7 +24,6 @@ def launch():
     # Define modules as global for assignment
     global links
     global hosts
-    global forwarding
 
     # Connect to db
     tmp_db = Database()
@@ -47,8 +44,9 @@ def launch():
     core.devices = oDev.Devices()
     hosts = oHos.Hosts()
     links = oLnk.Links()
-    forwarding = oFwd.Forwarding()
-    forwarding.add_listener("new_flows", _handleNewFlows)
+    
+    core.forwarding = oFwd.Forwarding()
+    core.forwarding.add_listener("new_flows", _handleNewFlows)
     hosts.add_listener("host_moved", _handleHostMoved)
 
     # Overlord Events')
@@ -60,13 +58,13 @@ def launch():
 
 def _handleHostMoved(event):
     host = event.host
-    flows = forwarding.Disconnect(host)
+    flows = core.forwarding.Disconnect(host)
     switches = core.devices.AllConnections()
     for f in flows:
         for k in switches:
             switches[k].send(f)
     if host["group_no"] != "-1":
-        forwarding.Group(log, core.devices, links, host)
+        core.forwarding.Group(log, core.devices, links, host)
 
 def _handleNewFlows(event):
     for dpid in event.flows:
@@ -84,14 +82,14 @@ def _handleWebCommand(event):
                 host["group_no"] = str(cmd[u"group_no"])
                 core.db.update_host(host)
 
-                flows = forwarding.Disconnect(host)
+                flows = core.forwarding.Disconnect(host)
                 switches = core.devices.AllConnections()
                 for f in flows:
                     for k in switches:
                         switches[k].send(f)
 
                 if host["group_no"] != "-1":
-                    forwarding.Group(log, core.devices, links, host)
+                    core.forwarding.Group(log, core.devices, links, host)
             except LookupError:
                 log.error("Host does not exist or is unknown to the controller. Has the device ARP'd yet?")
 
@@ -105,19 +103,19 @@ def _handleWebCommand(event):
         log.error("Recived invalid message")
 
 def _handleConnectionUp(event):
-    forwarding.Learn(event)
-    core.devices.Learn(log, event, fwding=forwarding, lnks=links)
+    core.forwarding.Learn(event)
+    core.devices.Learn(log, event, lnks=links)
     links.Learn(event)
 
 def _handleConnectionDown(event):
     core.devices.Forget(log, event)
-    forwarding.Forget(event)
+    core.forwarding.Forget(event)
 
 def _handlePacketIn(event):
     # Learn Network Device Links
     l = links.Learn(event)
     if not l is None:
-        forwarding.add_link(l[0], l[1], l[2])
+        core.forwarding.add_link(l[0], l[1], l[2])
     # Track Hosts
     hosts.learn(event)
 

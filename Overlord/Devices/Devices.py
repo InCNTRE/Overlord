@@ -20,8 +20,7 @@ class Devices(Eventful):
         self.add_event("port_up")
         self.add_event("port_down")
 
-    # Register fwding with core so no need to pass fwding and links
-    def Learn(self, log, event, fwding=None, lnks=None):
+    def Learn(self, log, event, lnks=None):
         """
         Learn dpid and ports
         """
@@ -60,12 +59,12 @@ class Devices(Eventful):
             event.connection.send(msg)
 
             # Attempt to group all hosts connected to dpid
-            if fwding != None and lnks != None:
+            if lnks != None:
                 log.info("Building host links in line with database.")
                 hosts = core.db.find_hosts({'_parent': str(dpid)})
                 for h in hosts:
                     if h['group_no'] != '-1':
-                        fwding.Group(log, self, lnks, h)
+                        core.forwarding.Group(log, self, lnks, h)
                                     
         elif str(type(event)) == "<class 'pox.openflow.PortStatus'>":
             log.debug('Updating port information.')
