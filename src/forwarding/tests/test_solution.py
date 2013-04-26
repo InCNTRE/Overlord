@@ -1,7 +1,7 @@
 import unittest
 
-from ..Graph import Switch
-from ..PathSolution import dijkstra
+from ..graph import Switch
+from ..solution import dijkstra
 
 class TestPathSolutionFunctions(unittest.TestCase):
     def setUp(self):

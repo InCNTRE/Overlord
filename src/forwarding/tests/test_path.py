@@ -1,6 +1,6 @@
 import unittest
 
-from ..Path import Path, PathNode
+from ..path import Path, PathNode
 
 class TestPathFunctions(unittest.TestCase):
     def setUp(self):

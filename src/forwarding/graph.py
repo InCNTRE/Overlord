@@ -1,9 +1,9 @@
 # @org InCNTRE 2013
 # @author Jonathan Stout
 
-from Path import *
-from PathSolution import dijkstra
-from ..Lib.Events import Event, Eventful
+from path import *
+from solution import dijkstra
+from ...Overlord.Lib.Events import Event, Eventful
 
 class Graph(Eventful):
     def __init__(self):

@@ -1,8 +1,8 @@
 import unittest
 
-from ..Graph import Graph
-from ..Path import Path, PathNode
-from ..PathSolution import dijkstra
+from ..graph import Graph
+from ..path import Path, PathNode
+from ..solution import dijkstra
 
 class TestGraphFunctions(unittest.TestCase):
     def setUp(self):

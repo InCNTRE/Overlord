@@ -7,7 +7,7 @@ import pox.openflow.libopenflow_01 as of
 from src.devices import Devices
 from src.hosts import Hosts
 from src.links import Links
-from Overlord.Forwarding import Forwarding as oFwd
+from src.forwarding import Forwarding
 from Overlord.Lib.Web import OverlordMessage as oMsg
 from src.database import *
 
@@ -38,7 +38,7 @@ def launch():
     core.devices = Devices()
     core.hosts = Hosts()
     core.links = Links()
-    core.forwarding = oFwd.Forwarding()
+    core.forwarding = Forwarding()
     core.forwarding.add_listener("new_flows", _handleNewFlows)
     core.hosts.add_listener("host_moved", _handleHostMoved)
 

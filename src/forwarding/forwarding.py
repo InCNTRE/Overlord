@@ -3,10 +3,10 @@ from pox.lib.addresses import EthAddr, IPAddr
 
 import pox.openflow.libopenflow_01 as of
 
-from Graph import *
-from Path import *
-from PathSolution import dijkstra
-from ..Lib.Events import Event, Eventful
+from graph import *
+from path import *
+from solution import dijkstra
+from ...Overlord.Lib.Events import Event, Eventful
 
 class Forwarding(Eventful):
     """Create Forwarding rules for Host to Host communication"""
