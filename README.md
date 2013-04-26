@@ -1,5 +1,5 @@
 # Overlord
-Overlord is an automated network device database built to address rapidly changing network configurations and labs with limited network resources. Overlord, built on the POX Openflow Controller platform, manages connections between end hosts by placing them in defined L2 network groups. Packets switched between groups are identified by source and destination mac. Overlord also acts as an automated network device database. By using each host’s source mac address as an unique identifier, Overlord is able to detect changes in host IP addresses, source port numbers, and top-of-rack DPIDs. Overlord tracks devices by intercepting ARP messages and updating device ARP tables.
+Overlord is an automated network device database built to facilitate rapid OpenFlow network configuration. By using each host’s source mac address as an unique identifier, Overlord is able to detect changes in host IP addresses, source port numbers, and top-of-rack DPIDs. Overlord also provides basic layer2 packet forwarding, and network group creation.
 Important: Overlord only uses ARP to update its internal database.
 
 ## Installation
