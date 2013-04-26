@@ -1,4 +1,3 @@
-# import Overlord.Forwarding
 from pox.core import core
 from pox.lib.addresses import EthAddr, IPAddr
 

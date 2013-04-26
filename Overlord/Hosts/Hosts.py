@@ -1,4 +1,3 @@
-# import Overlord.Hosts
 from pox.core import core
 from pox.lib.addresses import EthAddr, IPAddr
 from pox.lib.packet.ethernet import ethernet

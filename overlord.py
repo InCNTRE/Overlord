@@ -16,14 +16,12 @@ from threading import Thread
 
 log = core.getLogger()
 links = None
-hosts = None
 
 ######################################################
 
 def launch():
     # Define modules as global for assignment
     global links
-    global hosts
 
     # Connect to db
     tmp_db = Database()
@@ -42,12 +40,12 @@ def launch():
 
     # Overlord Lib
     core.devices = oDev.Devices()
-    hosts = oHos.Hosts()
+    core.hosts = oHos.Hosts()
     links = oLnk.Links()
     
     core.forwarding = oFwd.Forwarding()
     core.forwarding.add_listener("new_flows", _handleNewFlows)
-    hosts.add_listener("host_moved", _handleHostMoved)
+    core.hosts.add_listener("host_moved", _handleHostMoved)
 
     # Overlord Events')
     oEvents = oMsg.OverlordMessage()
@@ -117,7 +115,7 @@ def _handlePacketIn(event):
     if not l is None:
         core.forwarding.add_link(l[0], l[1], l[2])
     # Track Hosts
-    hosts.learn(event)
+    core.hosts.learn(event)
 
 def _handlePortStatus(event):
     core.devices.Learn(log, event)
