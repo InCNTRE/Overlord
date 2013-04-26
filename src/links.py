@@ -1,4 +1,3 @@
-# import Overlord.Links
 from pox.lib.recoco import Timer
 from pox.lib.addresses import EthAddr
 from pox.lib.packet.ethernet import ethernet
