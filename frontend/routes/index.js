@@ -12,5 +12,5 @@ exports.index = function(req, res){
            hosts: { status: null, link: 'hosts.html' },
            title: 'Home'
          }
-  res.render('index', args);
+    res.redirect('/groups.html');
 };
