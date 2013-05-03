@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h2 Devices
+  table.table.table-striped
+    tr
+      th Name
+      th DPID
+      th Description
+    for device in ofdevice
+      tr(onclick="window.location='/view_device.html?dpid=#{device.dpid}'")
+        td #{device._name}
+        td #{device.dpid}
+        td #{device.description}

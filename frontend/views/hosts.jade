@@ -1,0 +1,27 @@
+extends layout
+
+block content
+  h2 Hosts
+  table.table.table-striped
+    tr
+      th <!--Status-->
+      th Name
+      th Group
+      th Port
+      th IP
+      th MAC
+      th Parent
+    for h in host
+      <tr class='d' onclick="window.location='/view_host.html?mac=#{h.mac}'"/>
+      td
+        if h.active === true
+          <i class="icon-ok"></i>
+        else
+          <i class="icon-remove"></i>
+      td #{h._name}
+      td #{h.group_no}
+      td #{h.port_no}
+      td #{h.ip}
+      td #{h.mac}
+      td #{h._parent}
+      </tr>

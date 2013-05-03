@@ -1,0 +1,43 @@
+extends layout
+
+block content
+  h2 Edit Host
+  form(action="mod_host")
+    fieldset
+      div.row
+        div.span5
+          legend Identity
+          label Host Name
+          input(type="text", value="#{host._name}", name="_name")
+          label IP Address
+          input(type="hidden", value="#{host.ip}", name="ip")
+          input(type="text", value="#{host.ip}", name="ip", disabled)
+          label Mac Address
+          input(type="hidden", value="#{host.mac}", name="mac")
+          input(type="text", value="#{host.mac}", name="mac", disabled)
+          label Make
+          input(type="text", value="#{host.make}", name="make")
+          label Model
+          input(type="text", value="#{host.model}", name="model")
+          label Product Number
+          input(type="text", value="#{host.product_no}", name="product_no")
+          label Serial Number
+          input(type="text", value="#{host.serial_no}", name="serial_no")
+          input(type="hidden", value="#{host.group_no}", name="group_no")
+        div.span5.offset1
+          legend Software
+          label Firmware
+          input(type="text", value="#{host.firmware}", name="firmware")
+          label Operating System
+          input(type="text", value="#{host.os}", name="os")
+          legend Locality
+          label Location
+          input(type="text", value="#{host.location}", name="location")
+          label Parent Device
+          input(type="text", value="#{host._parent}", disabled)
+          label Port Number
+          input(type="text", value="#{host.port_no}", disabled)
+          label Proprietor
+          input(type="text", value="#{host.proprietor}", name="proprietor")
+      <button class="btn btn-primary" type="submit" value="Submit">Submit</button>
+      <input type="button" class="btn btn-danger" value="Delete" onclick="window.location='/del_host?mac=#{host.mac}'"/>

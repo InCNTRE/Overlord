@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  h2 Create Group
+  form(action="/add_group")
+    fieldset
+    div.row: div.span5
+      legend Group Information
+      label Group Name
+      input(type="text", name="_name", value="Group Name")
+      label Description
+      input(type="text", name="description")
+    <button class="btn btn-primary" type="submit" value="Submit">Submit</button>

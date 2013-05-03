@@ -1,0 +1,15 @@
+extends layout
+
+block content
+  h2 Edit Group
+  form(action="/mod_group?group_no=#{group.group_no}")
+    fieldset
+    div.row: div.span5
+      legend Group Information
+      label Group Name
+      input(type="text", name="_name", value="#{group._name}")
+      label Description
+      input(type="text", name="description", value="#{group.description}")
+      input(type="hidden", value="#{group.group_no}", name="group_no")
+    <button class="btn btn-primary" type="submit" value="Submit">Submit</button>
+    <input type="button" class="btn btn-danger" value="Delete" onclick="window.location='/del_group?group_no=#{group.group_no}'"/>

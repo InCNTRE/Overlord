@@ -1,0 +1,92 @@
+extends layout
+
+block content
+  script(type="text/javascript")
+    showHide = function(src, event) {
+      e = document.getElementById(event)
+      if (e.style.display == "block") {
+        e.style.display = "none"
+        d = src.getElementsByTagName("i")[0]
+        d.className = "icon-chevron-right"
+      }
+      else {
+        e.style.display = "block"
+        d = src.getElementsByTagName("i")[0]
+        d.className = "icon-chevron-down"
+      }
+    }
+
+    function drag(event) {
+      event.dataTransfer.setData("HWAddress", event.target.id)
+    }
+
+    function drop(event) {
+      event.preventDefault()
+      data = event.dataTransfer.getData("HWAddress")
+      ofp_groups = document.getElementsByClassName("ofp_group")
+      for (var i = 0; i < ofp_groups.length; i++) {
+        if (ofp_groups[i].contains(event.target)) {
+         t = ofp_groups[i].getElementsByTagName("table")
+         t[1].appendChild(document.getElementById(data))
+         publishGroupChange(data, ofp_groups[i].id)
+        }
+      }
+    }
+
+    function allowDrop(ev) {
+      ev.preventDefault()
+    }
+
+    function publishGroupChange(mac, group_no) {
+      var xmlhttp = new XMLHttpRequest()
+      xmlhttp.onreadystatechange=function() {
+        if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+          console.log("[INFO] Group successfully changed.")
+        }
+      }
+      xmlhttp.open("GET", "./group_host?mac="+mac+"&group_no="+group_no, true)
+      xmlhttp.send()
+    }
+
+  h2 Groups
+  div.well.well-small.add(onclick="window.location='/create_group.html'")
+    table
+      tr
+        td: <i class="icon-plus" style="float:left;"></i>&emsp;
+        td: h3(style="margin:0 0 0 0;"): a(href="/create_group.html") New Group
+
+  for g in group
+    div(class="ofp_group", id="#{g.group_no}", ondrop="drop(event)", ondragover="allowDrop(event)")
+      ul.breadcrumb(style="margin:0 0 0 0;", onclick="showHide(this, #{g.group_no}+'_table')")
+        table: tr
+          td: <i class="icon-chevron-down" style="float:left;"></i>&emsp;
+          td: h3(style="margin:0 0 0 0;")
+            if g.group_no === "-1"
+              p(style="margin:0 0 0 0;") Ungrouped Devices
+            else
+              a(href="/view_group.html?group_no=#{g.group_no}") #{g._name}
+      div.device(id="#{g.group_no}_table", style="display:block;")
+        table(class="table table-striped", width="100%")
+          tr
+            th
+            th Name
+            th Port
+            th VLAN
+            th IP
+            th MAC
+            th Parent
+          for host in g.hosts
+            <tr id="#{host.mac}" draggable="true" ondragstart="drag(event)">
+            td
+              if host.active === true
+                <i class="icon-ok"></i>
+              else
+                <i class="icon-remove"></i>
+            td #{host._name}
+            td #{host.port_no}
+            td #{host.vlan}
+            td #{host.ip}
+            td #{host.mac}
+            td #{host._parent}
+            </tr>
+      br

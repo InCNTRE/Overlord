@@ -1,0 +1,20 @@
+doctype 5
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/css/bootstrap.min.css', media='screen')
+  body
+    h1 -
+    div.navbar.navbar-inverse.navbar-fixed-top
+      div.navbar-inner
+        div.container
+          a.brand(href='#') Overlord
+          ul.nav
+            li(class='#{home.status}'): a(href='#{home.link}') Home
+            li(class='#{groups.status}'): a(href='#{groups.link}') Groups
+            li(class='#{devices.status}'): a(href='#{devices.link}') Devices
+            li(class='#{hosts.status}'): a(href='#{hosts.link}') Hosts
+    div.container
+      block content
+    script(src='https://code.jquery.com/jquery-latest.js')
+    script(src='/js/bootstrap.min.js')

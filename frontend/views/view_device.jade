@@ -1,0 +1,17 @@
+extends layout
+
+block content
+  h2 Edit Device
+  form(action="mod_device")
+    fieldset
+    div.row: div.span5
+      legend Device Information
+      label Device Name
+      input(type="text", name="_name", value="#{ofdevice._name}")
+      label DPID
+      input(type="text", name="dpid", value="#{ofdevice.dpid}")
+      label Description
+      input(type="text", name="description", value="#{ofdevice.description}")
+    </br>
+    <button class="btn btn-primary" type="submit" value="Submit">Submit</button>
+    <input type="button" class="btn btn-danger" value="Delete" onclick="window.location='/del_device?dpid=#{ofdevice.dpid}'"/>
