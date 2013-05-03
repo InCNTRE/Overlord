@@ -26,7 +26,7 @@ node app.js &
 
 Start the Overlord controller
 ```
-cd ~/pox/
+cd ~/POX_SOURCE/
 ./pox.py Overlord.overlord
 ```
 
