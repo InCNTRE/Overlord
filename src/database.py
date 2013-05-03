@@ -40,6 +40,12 @@ class Database(object):
         in device.
         """
         spec = {"dpid": device["dpid"]}
+        if self.find_device(spec) != None:
+            print("Updating Device %s" % str(device['dpid']))
+            self.db.devices.update(spec, {"$set": device})
+        else:
+            self.db.devices.insert(device)
+
         self.db.devices.update(spec, {"$set": device})
 
     def find_event(self, search):

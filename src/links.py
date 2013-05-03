@@ -1,3 +1,4 @@
+from pox.core import core
 from pox.lib.recoco import Timer
 from pox.lib.addresses import EthAddr
 from pox.lib.packet.ethernet import ethernet
@@ -57,5 +58,5 @@ class Links(object):
         (event.dpid, event.in_port, self.mac_map[pkt.src.toInt()])
         """
         #print("LINK_MSG FROM {} port {} Origin {}".format(str(event.dpid), str(event.port), self.mac_map[pkt.src.toInt()]))
-
-        return (str(event.dpid), str(event.port), self.mac_map[pkt.src.toInt()])
+        if core.devices.Connection(None,event.dpid):
+            return (str(event.dpid), str(event.port), self.mac_map[pkt.src.toInt()])
