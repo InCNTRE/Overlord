@@ -29,6 +29,8 @@ class Forwarding(Eventful):
         
     def Forget(self, event):
         self.graph.down_switch(str(event.dpid))
+        del(self.connections[str(event.dpid)])
+        print("Deleting all traces of:", str(event.dpid))
 
     def path_down(self, e):
         """

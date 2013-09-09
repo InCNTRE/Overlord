@@ -61,21 +61,21 @@ class Hosts(Eventful):
             self.send_arp(host_a, host_b)
 
     def send_arp(self, host_a, host_b):
-        # The ARP'n device src and dst exist and are in the same group
-        # Send ARP Reply for dst device
+        # The ARP'n device src and dst exist and are in the same
+        # group. Send ARP Reply for dst device.
+        arp_reply = arp()
+        arp_reply.opcode = 2
+        arp_reply.hwsrc = EthAddr(str(host_b["mac"]))
+        arp_reply.hwdst = EthAddr(str(host_a["mac"]))
+        arp_reply.protosrc = IPAddr(str(host_b["ip"]))
+        arp_reply.protodst = IPAddr(str(host_a["ip"]))
         pkt = ethernet()
+        pkt.type = 0x0806
         pkt.src = EthAddr(str(host_b["mac"]))
         pkt.dst = EthAddr(str(host_a["mac"]))
-        pkt.type = 0x0806
-        amsg = arp()
-        amsg.opcode = 2
-        amsg.hwsrc = EthAddr(str(host_b["mac"]))
-        amsg.hwdst = EthAddr(str(host_a["mac"]))
-        amsg.protosrc = IPAddr(str(host_b["ip"]))
-        amsg.protodst = IPAddr(str(host_a["ip"]))
-        pkt.next = amsg
+        pkt.payload = arp_reply
+
         pkt_out= of.ofp_packet_out()
         pkt_out.actions.append(of.ofp_action_output(port=int(host_a["port_no"])))
         pkt_out.data = pkt
-        print(str(pkt))
         core.devices.Connection(None, str(host_a["_parent"])).send(pkt_out)

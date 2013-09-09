@@ -88,7 +88,6 @@ class Devices(Eventful):
             return self.switches[str(dpid)]
         except KeyError:
             print("Could not find connection object")
-            return False
 
     def relearn_ports(self, event, log):
         """

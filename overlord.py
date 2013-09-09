@@ -61,7 +61,8 @@ def _handleHostMoved(event):
 def _handleNewFlows(event):
     for dpid in event.flows:
         for f in event.flows[dpid]:
-            core.devices.Connection(log, dpid).send(f)
+            sw = core.devices.Connection(log, dpid)
+            if sw != None: sw.send(f)
 
 # TODO::Push down into forwarding.group.
 def _handleWebCommand(event):

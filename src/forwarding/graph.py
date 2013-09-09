@@ -28,7 +28,7 @@ class Graph(Eventful):
         @ param in_port Port number of recieving device
         """
         self.switches[rcvr_dpid].add_link(sndr_dpid, in_port)
-
+        print("Addinglink", rcvr_dpid, sndr_dpid, in_port)
         for k in self.paths:
             p = self.paths[k]
             if len(p) is 0:
@@ -93,7 +93,9 @@ class Graph(Eventful):
 
         path_of_nodes = []
         if dpid_a in self.switches and dpid_b in self.switches:
-            path_of_nodes = self.new_path_nodes(dpid_a, dpid_b, pred)
+            path_of_nodes = self.new_path_array(dpid_a, dpid_b, pred)
+            #FIXME
+            #path_of_nodes = self.new_path_nodes(dpid_a, dpid_b, pred)
 
         #if path_of_nodes == None:
         #    return None
@@ -127,6 +129,7 @@ class Graph(Eventful):
         @param dpid_b Dpid of last node in the path
         @param pred A map from a dpid to the predicessor of that dpid
         """
+        print(pred)
         dpid_a = str(dpid_a)
         dpid_b = str(dpid_b)
         if dpid_a == dpid_b:
@@ -150,6 +153,29 @@ class Graph(Eventful):
                 return nodes
             except KeyError:
                 return []
+
+    def new_path_array(self, dpid_a, dpid_b, nodes):
+        dpid_a = str(dpid_a)
+        dpid_b = str(dpid_b)
+
+        if nodes[dpid_b] == -1:
+            # No known path between dpid_a and dpid_b
+            return []
+
+        result = []
+        result.insert(0, PathNode(dpid_b, self.switches[dpid_b].get_link(nodes[dpid_b]).get_port(), None))
+        dpid_c = dpid_b
+        dpid_b = nodes[dpid_b]
+
+        while dpid_a != dpid_b:
+            result.insert(0, PathNode(dpid_b, self.switches[dpid_b].get_link(nodes[dpid_b]).get_port(),
+                          self.switches[dpid_b].get_link(dpid_c).get_port()))
+            dpid_c = dpid_b
+            dpid_b = nodes[dpid_b]
+
+        result.insert(0, PathNode(dpid_b, None, self.switches[dpid_b].get_link(dpid_c).get_port()))
+        print(result)
+        return result
 
     def handle_path_down(self, e):
         """
